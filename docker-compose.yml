@@ -1,0 +1,105 @@
+name: orderly
+
+services:
+
+# -------------------------
+
+# Infrastructure
+
+# -------------------------
+
+  kafka:
+    image: apache/kafka:3.7.2
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+    ports:
+      - "9092:9092"
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics.sh --bootstrap-server localhost:9092 --list"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: orderly
+      POSTGRES_USER: orderly
+      POSTGRES_PASSWORD: orderly
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U orderly"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # -------------------------
+
+  # Application Services
+
+  # -------------------------
+
+  api-gateway:
+    build: ./services/api-gateway
+    environment:
+      SERVICE_NAME: api-gateway
+      HTTP_PORT: "8080"
+      LOG_LEVEL: info
+      KAFKA_BROKERS: kafka:9092
+      KAFKA_TOPIC_ORDERS_CREATED: orders.created
+    ports:
+      - "8080:8080"
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+  order-worker:
+    build: ./services/order-worker
+    environment:
+      SERVICE_NAME: order-worker
+      LOG_LEVEL: info
+      KAFKA_BROKERS: kafka:9092
+      KAFKA_TOPIC_ORDERS_CREATED: orders.created
+      KAFKA_TOPIC_ORDERS_COMPLETED: orders.completed
+      KAFKA_CONSUMER_GROUP: order-worker
+      POSTGRES_DSN: "host=postgres port=5432 dbname=orderly user=orderly password=orderly"
+      METRICS_PORT: "9100"
+      SIMULATED_FAILURE_RATE: "0.1"
+    ports:
+      - "9100:9100"
+    depends_on:
+      kafka:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+
+  notifier:
+    build: ./services/notifier
+    environment:
+      SERVICE_NAME: notifier
+      LOG_LEVEL: info
+      KAFKA_BROKERS: kafka:9092
+      KAFKA_TOPIC_ORDERS_COMPLETED: orders.completed
+      KAFKA_CONSUMER_GROUP: notifier
+      METRICS_PORT: "9200"
+    ports:
+      - "9200:9200"
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
