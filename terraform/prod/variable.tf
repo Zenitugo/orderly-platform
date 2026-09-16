@@ -7,7 +7,6 @@ variable "subnet_cidr_private_2" {}
 variable "eks_cluster_role_name" {}
 variable "node_group_role_name" {}
 variable "cluster_name" {}
-variable "eks_cluster_role_arn" {}
 variable "kubernetes_version"  {}
 variable "node_group_name" {}
 variable "instance_type" {}
