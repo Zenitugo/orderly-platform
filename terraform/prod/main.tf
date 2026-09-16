@@ -9,24 +9,24 @@ module "vpc" {
 }
 
 module "sg" {
-    source                                      = "../module/sg"
+    source                                      = "../modules/sg"
     project_name                                = var.project_name 
     vpc_id                                      = module.vpc.vpc_id
 }
 
 module "ecr" {
-    source                                      = "../module/ecr"
+    source                                      = "../modules/ecr"
     project_name                                = var.project_name
 }
 
 module "iam" {
-    source                                      = "../module/iam"
+    source                                      = "../modules/iam"
     eks_cluster_role_name                       = var.eks_cluster_role_name
     node_group_role_name                        = var.node_group_role_name
 }
 
 module "eks" {
-    source                                      = "../module/eks"
+    source                                      = "../modules/eks"
     cluster_name                                = var.cluster_name
     eks_cluster_role_arn                        = module.iam.eks_cluster_role_arn
     kubernetes_version                          = var.kubernetes_version
@@ -34,4 +34,5 @@ module "eks" {
     private_subnet_2_id                         = module.vpc.private_subnet_2_id
     node_group_name                             = var.node_group_name
     node_group_role_arn                         = module.iam.node_group_role_arn
+    instance_type                               = var.instance_type 
 }
