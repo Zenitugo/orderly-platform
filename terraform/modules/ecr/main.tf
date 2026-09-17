@@ -1,6 +1,6 @@
 ################## CREATE ECR REPO FOR API GATEWAY ############################
-resource "aws_ecr_repository" "api-gateway" {
-  name = "${var.project_name}-api-gateway"
+resource "aws_ecr_repository" "api_gateway" {
+  name = "${var.project_name}-apigateway"
   image_tag_mutability = "MUTABLE"
   force_delete = true
 
@@ -11,8 +11,8 @@ resource "aws_ecr_repository" "api-gateway" {
 
 
 ##################  CREATE ECR REPO FOR ORDER WORKER ########################
-resource "aws_ecr_repository" "order-worker" {
-  name = "${var.project_name}-order-worker"       
+resource "aws_ecr_repository" "order_worker" {
+  name = "${var.project_name}-orderworker"       
   image_tag_mutability = "MUTABLE"
   force_delete = true
   
