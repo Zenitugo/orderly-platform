@@ -4,25 +4,258 @@ name: Deploy Orderly
 on:
   push:
     branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+env:  
+  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_REGION: eu-central-1
+
 
 jobs:
-  deploy:
+  ################################## Detect Changed Services ########################
+  changes:
     runs-on: ubuntu-latest
-    env:  
-      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+    outputs:
+      api-gateway: ${{ steps.filter.outputs.api-gateway }}
+      order-worker: ${{ steps.filter.outputs.order-worker }}
+      notifier: ${{ steps.filter.outputs.notifier }}
 
     steps:
       # Checkout the repository
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
-      # Configure AWS credentials
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+
+      # check which services changed so that a change in one microservice does not allow for a rebuild in the others. 
+      # Also changes in the ci.yml file applies to all microservice
+      - name: Check which services changed
+        uses: dorny/paths-filter@v4
+        id: filter
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: "eu-central-1"
+          filters: |
+            api-gateway:
+              - 'services/api-gateway/**'
+              - '.github/workflows/ci.yml'
+            order-worker:
+              - 'services/order-worker/**'
+              - '.github/workflows/ci.yml'
+            notifier:
+              - 'services/notifier/**'  
+              - '.github/workflows/ci.yml'
+
+  
+  ############################################# Go Code Checks    ############################      
+  api-gateway:
+    needs: changes
+    if: needs.changes.outputs.api-gateway == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v4
     
+      - name: Mask AWS Account ID
+        run: echo "::add-mask::${{ secrets.AWS_ACCOUNT_ID }}"
+      
+      # Set up the Go environment so the runner can build and test the API Gateway.
+      - name: Setup go environment
+        uses: actions/setup-go@v7
+        with:
+          go-version: '1.25'
+          cache-dependency-path: services/api-gateway/go.sum
+
+      # Download dependencies, tidy the Go modules, and fail if go.mod or go.sum
+      # would change, indicating the committed dependency files are not up to date
+ 
+      - name: Verify dependencies are tidy
+        working-directory: services/api-gateway
+        run: |
+          go mod download
+          go mod tidy
+          # If go.mod/go.sum changed, the committed versions were stale.
+          git diff --exit-code go.mod go.sum
+
+      # Run Go's static analyzer to detect suspicious code and common programming mistakes.
+      - name: Vet
+        working-directory: services/api-gateway
+        run: go vet ./...
+
+
+      # Compile all Go packages to verify that the API Gateway builds successfully.
+      - name: Build
+        working-directory: services/api-gateway
+        run: go build ./...
+
+
+      # Run the Go test suite with the race detector and collect coverage information.
+      - name: Test
+        working-directory: services/api-gateway
+        run: go test -race -cover ./...
+
+################################ Python Code Checks ##########################
+  order-worker:
+    needs: changes
+    if: needs.changes.outputs.order-worker == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+ 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: services/order-worker/requirements.txt
+ 
+      - name: Install dependencies
+        working-directory: services/order-worker
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install ruff
+ 
+      - name: Lint
+        working-directory: services/order-worker
+        run: ruff check .
+ 
+      - name: Import check
+        # This service is a Kafka consumer loop with no unit tests yet, so
+        # the meaningful smoke check is that every module imports cleanly
+        # against real dependencies — this catches API drift in the OTel
+        # and Kafka libraries, which is exactly the class of bug that
+        # otherwise only shows up at runtime in the cluster.
+        working-directory: services/order-worker
+        run: |
+          python -m compileall -q main.py app/
+          python -c "
+          import app.config, app.logger, app.telemetry
+          import app.models, app.metrics, app.producer, app.consumer
+          print('all modules import cleanly')
+          "     
+
+
+############################## Node.js Code Checks ###########################          
+  notifier:
+    needs: changes
+    if: needs.changes.outputs.notifier == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+ 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: services/notifier/package-lock.json
+ 
+      - name: Install dependencies
+        working-directory: services/notifier
+        run: npm ci
+ 
+      - name: Syntax check
+        working-directory: services/notifier
+        run: |
+          for f in index.js src/*.js; do
+            node --check "$f"
+          done
+ 
+      - name: Module load check
+        working-directory: services/notifier
+        run: |
+          node -e "
+          require('./src/config');
+          require('./src/metrics');
+          const { initTracer } = require('./src/telemetry');
+          initTracer();
+          require('./src/notify');
+          require('./src/consumer');
+          require('./src/logger');
+          console.log('all modules load cleanly');
+          process.exit(0);
+          "
+ 
+
+  ###################### Build, Scan & Push Docker Images #################################        
+  build-and-push:
+    needs: [changes, api-gateway, order-worker, notifier]
+    # `always()` because the per-service jobs are skipped when unchanged,
+    # and a skipped dependency would otherwise skip this job entirely.
+    # We still fail if any dependency actually failed.
+    if: |
+      always() &&
+      github.ref == 'refs/heads/master' &&
+      github.event_name == 'push' &&
+      !contains(needs.*.result, 'failure') &&
+      !contains(needs.*.result, 'cancelled')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [api-gateway, order-worker, notifier]
+    steps:
+      - uses: actions/checkout@v4
+ 
+      - name: Skip unchanged service
+        id: should-build
+        run: |
+          case "${{ matrix.service }}" in
+            api-gateway)  changed="${{ needs.changes.outputs.api-gateway }}" ;;
+            order-worker) changed="${{ needs.changes.outputs.order-worker }}" ;;
+            notifier)     changed="${{ needs.changes.outputs.notifier }}" ;;
+          esac
+          echo "changed=${changed}" >> "$GITHUB_OUTPUT"
+
+
+      - name: Get ECR registry
+        id: ecr
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity \
+            --query Account \
+            --output text)
+
+          echo "registry=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com" >> "$GITHUB_OUTPUT"
+ 
+      - name: Log in to Amazon ECR
+        if: steps.should-build.outputs.changed == 'true'
+        uses: aws-actions/amazon-ecr-login@v2
+
+
+
+      - name: Set up Buildx
+        if: steps.should-build.outputs.changed == 'true'
+        uses: docker/setup-buildx-action@v3
+ 
+      - name: Build image
+        if: steps.should-build.outputs.changed == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: services/${{ matrix.service }}
+          # Load into the local daemon first so Trivy can scan the exact
+          # image we're about to push, rather than scanning a rebuild.
+          load: true
+          push: false
+          tags: ${{ steps.ecr.outputs.registry }}/${{ matrix.service }}:${{ github.sha }}
+ 
+      - name: Scan image for vulnerabilities
+        if: steps.should-build.outputs.changed == 'true'
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: ${{ steps.ecr.outputs.registry }}/${{ matrix.service }}:${{ github.sha }}
+          format: table
+          exit-code: '1'
+          ignore-unfixed: true          # don't block on CVEs with no patch available
+          severity: CRITICAL,HIGH
+ 
+      - name: Push image
+        if: steps.should-build.outputs.changed == 'true'
+        run: |
+          IMAGE="${ECR_REGISTRY}/${{ matrix.service }}"
+          docker tag "${IMAGE}:${GITHUB_SHA}" "${IMAGE}:latest"
+          docker push "${IMAGE}:${GITHUB_SHA}"
+          docker push "${IMAGE}:latest"
+          echo "Pushed ${IMAGE}:${GITHUB_SHA}"
+ 
