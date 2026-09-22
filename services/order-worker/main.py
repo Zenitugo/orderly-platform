@@ -2,12 +2,12 @@ import signal
 import threading
 
 from app.config import config
-from app.logger import get_logger, log_with_fields
-from app.telemetry import init_tracer
-from app.db import Database
-from app.producer import CompletedEventProducer
 from app.consumer import OrderConsumer
+from app.db import Database
+from app.logger import get_logger, log_with_fields
 from app.metrics import start_metrics_server
+from app.producer import CompletedEventProducer
+from app.telemetry import init_tracer
 
 
 def main():
