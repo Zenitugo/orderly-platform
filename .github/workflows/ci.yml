@@ -201,8 +201,19 @@ jobs:
       matrix:
         service: [api-gateway, order-worker, notifier]
     steps:
-      - uses: actions/checkout@v4
- 
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        if: steps.should-build.outputs.changed == 'true'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+
+
       - name: Skip unchanged service
         id: should-build
         run: |
@@ -216,6 +227,7 @@ jobs:
 
       - name: Get ECR registry
         id: ecr
+        if: steps.should-build.outputs.changed == 'true'
         run: |
           ACCOUNT_ID=$(aws sts get-caller-identity \
             --query Account \
@@ -256,6 +268,8 @@ jobs:
  
       - name: Push image
         if: steps.should-build.outputs.changed == 'true'
+        env:
+          ECR_REGISTRY: ${{ steps.ecr.outputs.registry }}
         run: |
           IMAGE="${ECR_REGISTRY}/${{ matrix.service }}"
           docker tag "${IMAGE}:${GITHUB_SHA}" "${IMAGE}:latest"
