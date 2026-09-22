@@ -258,7 +258,7 @@ jobs:
  
       - name: Scan image for vulnerabilities
         if: steps.should-build.outputs.changed == 'true'
-        uses: aquasecurity/trivy-action@0.36.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ${{ steps.ecr.outputs.registry }}/${{ matrix.service }}:${{ github.sha }}
           format: table
