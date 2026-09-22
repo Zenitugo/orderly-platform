@@ -87,7 +87,7 @@ class OrderConsumer:
 
                 self._process_order(event)
 
-            except Exception as exc:
+            except Exception as exc: # noqa: BLE001
                 span.record_exception(exc)
                 kafka_consume_errors_total.inc()
                 log_with_fields(self.logger, "error", "failed to handle message",
