@@ -232,20 +232,26 @@ jobs:
           SERVICE: ${{ matrix.service }}
         run: |
           set +e
+          REPO_NAME="orderly-$(echo "$SERVICE" | tr -d '-')"
+
           REPOSITORY_URI=$(aws ecr describe-repositories \
             --region "$AWS_REGION" \
-            --repository-names "$SERVICE" \
+            --repository-names "$REPO_NAME" \
             --query "repositories[0].repositoryUri" \
             --output text 2>&1)
+          STATUS=$?
+          set -e
 
-          if [ -z "$REPOSITORY_URI" ] || [ "$REPOSITORY_URI" = "None" ]; then
-            echo "No ECR repository found named: $SERVICE"
+          if [ $STATUS -ne 0 ] || [ -z "$REPOSITORY_URI" ] || [ "$REPOSITORY_URI" = "None" ]; then
+            echo "Failed to look up ECR repository: $REPO_NAME"
+            echo "AWS CLI output: $REPOSITORY_URI"
             exit 1
           fi
 
           echo "repository_uri=$REPOSITORY_URI" >> "$GITHUB_OUTPUT"
           echo "Service: $SERVICE"
-          echo "ECR repository: $REPOSITORY_URI"
+          echo "ECR repository: $REPO_NAME"
+          echo "Repository URI: $REPOSITORY_URI"
  
       - name: Log in to Amazon ECR
         if: steps.should-build.outputs.changed == 'true'
