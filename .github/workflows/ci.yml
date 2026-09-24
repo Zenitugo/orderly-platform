@@ -278,7 +278,7 @@ jobs:
         if: steps.should-build.outputs.changed == 'true'
         uses: aquasecurity/trivy-action@v0.36.0
         with:
-          image-ref: ${{ steps.ecr.outputs.registry }}/${{ matrix.service }}:${{ github.sha }}
+          image-ref: ${{ steps.ecr.outputs.repository_uri }}:${{ github.sha }}
           format: table
           exit-code: '1'
           ignore-unfixed: true          # don't block on CVEs with no patch available
@@ -287,9 +287,8 @@ jobs:
       - name: Push image
         if: steps.should-build.outputs.changed == 'true'
         env:
-          ECR_REGISTRY: ${{ steps.ecr.outputs.registry }}
+          IMAGE: ${{ steps.ecr.outputs.repository_uri }}
         run: |
-          IMAGE="${ECR_REGISTRY}/${{ matrix.service }}"
           docker tag "${IMAGE}:${GITHUB_SHA}" "${IMAGE}:latest"
           docker push "${IMAGE}:${GITHUB_SHA}"
           docker push "${IMAGE}:latest"
