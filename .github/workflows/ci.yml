@@ -272,7 +272,7 @@ jobs:
           # image we're about to push, rather than scanning a rebuild.
           load: true
           push: false
-          tags: ${{ steps.ecr.outputs.registry }}/${{ matrix.service }}:${{ github.sha }}
+          tags: ${{ steps.ecr.outputs.repository_uri }}:${{ github.sha }}
  
       - name: Scan image for vulnerabilities
         if: steps.should-build.outputs.changed == 'true'
