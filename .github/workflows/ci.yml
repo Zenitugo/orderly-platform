@@ -225,15 +225,26 @@ jobs:
           echo "changed=${changed}" >> "$GITHUB_OUTPUT"
 
 
-      - name: Get ECR registry
+      - name: Get ECR repository
         id: ecr
         if: steps.should-build.outputs.changed == 'true'
+        env:
+          SERVICE: ${{ matrix.service }}
         run: |
-          ACCOUNT_ID=$(aws sts get-caller-identity \
-            --query Account \
-            --output text
+          REPOSITORY_URI=$(aws ecr describe-repositories \
+            --region "$AWS_REGION" \
+            --repository-names "$SERVICE" \
+            --query "repositories[0].repositoryUri" \
+            --output text 2>&1)
 
-          echo "registry=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com" >> "$GITHUB_OUTPUT"
+          if [ -z "$REPOSITORY_URI" ] || [ "$REPOSITORY_URI" = "None" ]; then
+            echo "No ECR repository found named: $SERVICE"
+            exit 1
+          fi
+
+          echo "repository_uri=$REPOSITORY_URI" >> "$GITHUB_OUTPUT"
+          echo "Service: $SERVICE"
+          echo "ECR repository: $REPOSITORY_URI"
  
       - name: Log in to Amazon ECR
         if: steps.should-build.outputs.changed == 'true'
