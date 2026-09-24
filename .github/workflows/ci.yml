@@ -231,7 +231,7 @@ jobs:
         run: |
           ACCOUNT_ID=$(aws sts get-caller-identity \
             --query Account \
-            --output text)
+            --output text
 
           echo "registry=${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com" >> "$GITHUB_OUTPUT"
  
