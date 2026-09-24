@@ -184,15 +184,15 @@ jobs:
   ###################### Build, Scan & Push Docker Images #################################        
   build-and-push:
     needs: [changes, api-gateway, order-worker, notifier]
-    # `always()` because the per-service jobs are skipped when unchanged,
-    # and a skipped dependency would otherwise skip this job entirely.
-    # We still fail if any dependency actually failed.
     if: |
       always() &&
-      github.ref == 'refs/heads/master' &&
-      github.event_name == 'push' &&
+      (
+        (github.event_name == 'push' && github.ref == 'refs/heads/master') ||
+        (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/master')
+      ) &&
       !contains(needs.*.result, 'failure') &&
       !contains(needs.*.result, 'cancelled')
+
     runs-on: ubuntu-latest
     permissions:
       contents: read
