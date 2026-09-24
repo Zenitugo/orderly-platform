@@ -231,6 +231,7 @@ jobs:
         env:
           SERVICE: ${{ matrix.service }}
         run: |
+          set +e
           REPOSITORY_URI=$(aws ecr describe-repositories \
             --region "$AWS_REGION" \
             --repository-names "$SERVICE" \
