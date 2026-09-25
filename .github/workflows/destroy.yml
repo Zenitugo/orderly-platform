@@ -24,7 +24,7 @@ jobs:
       - name: Mask AWS Account ID
         run: echo "::add-mask::${{ secrets.AWS_ACCOUNT_ID }}"
 
-      - name: Creating EKS & other infrastructure with Terraform
+      - name: Destroying EKS & other infrastructure with Terraform
         run: |
           echo "Creating  EKS & other infrastructure with Terraform..."
           cd terraform/prod
