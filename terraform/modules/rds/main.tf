@@ -4,7 +4,7 @@ resource "aws_db_subnet_group" "orderly_rds" {
   subnet_ids = [var.private_subnet_1_id, var.private_subnet_2_id]
 }
 
-resource "aws_db_instance" "fittrack_rds" {
+resource "aws_db_instance" "orderly_rds" {
   allocated_storage        = 20
   storage_type             = "gp2"
   engine                   = "postgres"
