@@ -10,4 +10,5 @@ variable "cluster_name" {}
 variable "kubernetes_version"  {}
 variable "node_group_name" {}
 variable "instance_type" {}
+variable "database_username" {}
 
