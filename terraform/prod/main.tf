@@ -36,3 +36,12 @@ module "eks" {
     node_group_role_arn                         = module.iam.node_group_role_arn
     instance_type                               = var.instance_type 
 }
+
+module "rds" {
+    source                                      = "../modules/rds"
+    private_subnet_1_id                         = module.vpc.private_subnet_1_id
+    private_subnet_2_id                         = module.vpc.private_subnet_2_id
+    project_name                                = var.project_name
+    database_sg                                 = module.sg.database_sg
+    database_username                           = var.database_username   
+}
