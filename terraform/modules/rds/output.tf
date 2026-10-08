@@ -1,6 +1,6 @@
 
 output "rds_endpoint" {
-    value = aws_db_instance.orderly_rds.endpoint
+    value = aws_db_instance.orderly_rds.address
 }
 
 
