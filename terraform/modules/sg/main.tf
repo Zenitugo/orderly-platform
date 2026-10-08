@@ -28,7 +28,7 @@ resource "aws_security_group" "db_sg" {
     egress {
         from_port = 5432
         to_port = 5432
-        protocol = "-1"
+        protocol = "tcp"
         cidr_blocks = ["0.0.0.0/0"]
     }
 }
