@@ -19,6 +19,6 @@ output "rds_db_username" {
     value = aws_db_instance.orderly_rds.username
 }
 
-output "rds_password" {
-    value = aws_db_instance.orderly_rds.manage_master_user_password
+output "rds_secret_arn" {
+    value = aws_db_instance.orderly_rds.master_user_secret[0].secret_arn
 }
