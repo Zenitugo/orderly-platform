@@ -1,0 +1,63 @@
+#################  Github Actions CD Pipeline for Orderly #############################
+
+name: CD
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+        - completed
+
+env:  
+  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_REGION: eu-central-1
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    steps:
+        - name: Checkout code
+          uses: actions/checkout@v6
+
+
+        - name: Install Kubectl
+          uses: azure/setup-kubectl@v4
+
+
+        - name: Install helm
+          uses: azure/setup-helm@v5.0.0
+          with:
+            version-file: .tool-versions
+          id: install
+
+
+        - name: Update linux with eks config
+          run: aws eks update-kubeconfig --region eu-central-1 --name Orderly_Cluster
+
+
+        - name: Create namespace
+          run: |
+           kubectl create namespace orderly --dry-run=client -o yaml | kubectl apply -f -
+           kubectl create namespace external-secrets --dry-run=client -o yaml | kubectl apply -f -
+
+
+        - name: Add External Secrets Helm Repository
+          run: |
+            helm repo add external-secrets https://charts.external-secrets.io
+            helm repo update
+
+            
+        - name: Install External Secrets Operator
+          run: |
+            helm install external-secrets external-secrets/external-secrets -n external-secrets
+
+
+        - name: Install Api Gateway Helm Chart
+          run: |
+           helm install api-gateway ./api-gateway -n orderly
+           
+
+        - name: Install Order-worker Helm Chart
+          run: |
+           helm install order-worker ./order-worker -n orderly
