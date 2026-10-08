@@ -8,3 +8,8 @@ output "http_sg" {
 output "https_sg" {
     value = aws_security_group.https_access.id
 }
+
+
+output "database_sg" {
+    value = aws_security_group.db_sg.id
+}
