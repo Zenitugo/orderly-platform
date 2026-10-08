@@ -1,14 +1,8 @@
 ##################### EXTRACT SG FOR PORT 80 & 443 #################
 
-output "http_sg" {
-    value = aws_security_group.http_access.id
+output "eks_nodes_sg" {
+    value = aws_security_group.eks_nodes.id
 }
-
-
-output "https_sg" {
-    value = aws_security_group.https_access.id
-}
-
 
 output "database_sg" {
     value = aws_security_group.db_sg.id
