@@ -84,7 +84,7 @@ jobs:
             cd terraform/prod
             terraform init
             SECRET_ARN=$(terraform output -raw db_secretarn)
-            echo "secret_arn=$SECRET_ARN" >> "$GITHUB_OUTPUT
+            echo "secret_arn=$SECRET_ARN" >> "$GITHUB_OUTPUT"
 
             aws secretsmanager get-secret-value \
               --secret-id "$SECRET_ARN" \
