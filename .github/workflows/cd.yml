@@ -50,7 +50,7 @@ jobs:
             
         - name: Install External Secrets Operator
           run: |
-            helm install external-secrets external-secrets/external-secrets -n external-secrets
+            helm upgrade --install external-secrets external-secrets/external-secrets -n external-secrets
 
 
         - name: Install Api Gateway Helm Chart
