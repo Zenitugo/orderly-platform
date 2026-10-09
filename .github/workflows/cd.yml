@@ -16,7 +16,6 @@ env:
 jobs:
   changes:
     runs-on: ubuntu-latest
-    outputs: 
     steps:
         - name: Checkout code
           uses: actions/checkout@v6
