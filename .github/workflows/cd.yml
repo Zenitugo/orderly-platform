@@ -89,5 +89,5 @@ jobs:
               --secret-id "$SECRET_ARN" \
               --region eu-central-1 \
               --query 'SecretString' \
-              --output text | jq 'fromjson | keys'
+              --output text | jq 'keys'
 
