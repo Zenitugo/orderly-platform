@@ -28,6 +28,7 @@ module "iam" {
     cluster_name                                = var.cluster_name 
 }
 
+
 module "eks" {
     source                                      = "../modules/eks"
     cluster_name                                = var.cluster_name
@@ -47,4 +48,10 @@ module "rds" {
     project_name                                = var.project_name
     database_sg                                 = module.sg.database_sg
     database_username                           = var.database_username   
+}
+
+
+module "add-on" {
+    source                                      = "../modules/add-on"
+    cluster_name                                = var.cluster_name 
 }
