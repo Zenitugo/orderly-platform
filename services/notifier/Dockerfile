@@ -26,7 +26,7 @@ COPY package.json .
 COPY src/ ./src/
 COPY index.js .
 
-USER appuser
+USER node
 #USER nonroot
 EXPOSE 9200
 
