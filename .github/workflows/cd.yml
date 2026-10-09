@@ -56,23 +56,6 @@ jobs:
           run: |
             helm upgrade --install external-secrets external-secrets/external-secrets -n external-secrets
 
-
-        - name: Install Api Gateway Helm Chart
-          run: |
-           helm upgrade --install api-gateway ./api-gateway -n orderly \
-           --set-string image.repository="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/orderly-apigateway"
-           
-
-        - name: Install Order-worker Helm Chart
-          run: |
-           helm upgrade --install order-worker ./order-worker -n orderly \
-           --set-string image.repository="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/orderly-orderworker"
-
-        - name: Install Notifier Helm Chart
-          run: |
-            helm upgrade --install notifier ./notifier -n orderly \
-             --set-string image.repository="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/orderly-notifier"
-
         
         - name: Apply ClusterSecretStore
           run: |
@@ -98,7 +81,6 @@ jobs:
           env:
             SECRET_ARN: ${{ steps.secret-arn.outputs.secret_arn }}
           run: |
-
             envsubst '${SECRET_ARN}' < k8s/external-secrets/orderly-db-secret.yaml | kubectl apply -f -
 
         - name: Wait for ExternalSecret
@@ -108,4 +90,36 @@ jobs:
               externalsecret/orderly-db-secret \
               -n orderly \
               --timeout=120s
+
+
+
+        - name: Install Api Gateway Helm Chart
+          run: |
+           helm upgrade --install api-gateway ./api-gateway -n orderly \
+           --set-string image.repository="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/orderly-apigateway"
+           
+
+        - name: Install Order-worker Helm Chart
+          run: |
+            cd terraform/prod
+
+            DB_ENDPOINT=$(terraform output -raw db_endpoint)
+            DB_PORT=$(terraform output -raw db_port)
+            DB_NAME=$(terraform output -raw db_name)
+            DB_USERNAME=$(terraform output -raw db_username)
+
+            cd ../..
+
+            helm upgrade --install order-worker ./order-worker -n orderly \
+              --set-string database.host="$DB_ENDPOINT" \
+              --set-string database.port="$DB_PORT" \
+              --set-string database.name="$DB_NAME" \
+              --set-string database.username="$DB_USERNAME" \
+              --set-string image.repository="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/orderly-orderworker"
+
+        - name: Install Notifier Helm Chart
+          run: |
+            helm upgrade --install notifier ./notifier -n orderly \
+             --set-string image.repository="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/orderly-notifier"
+
 
