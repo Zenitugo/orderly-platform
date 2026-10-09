@@ -13,10 +13,22 @@ class Config:
         self.kafka_topic_orders_completed = os.getenv("KAFKA_TOPIC_ORDERS_COMPLETED", "orders.completed")
         self.kafka_consumer_group = os.getenv("KAFKA_CONSUMER_GROUP", "order-worker")
 
-        self.postgres_dsn = os.getenv(
-            "POSTGRES_DSN",
-            "host=postgres port=5432 dbname=orderly user=orderly password=orderly",
-        )
+        self.postgres_dsn = os.getenv("POSTGRES_DSN")
+
+        if not self.postgres_dsn:
+            db_host = os.getenv("POSTGRES_HOST", "postgres")
+            db_port = os.getenv("POSTGRES_PORT", "5432")
+            db_name = os.getenv("POSTGRES_DB", "orderly")
+            db_user = os.getenv("POSTGRES_USER", "orderly")
+            db_password = os.getenv("POSTGRES_PASSWORD", "orderly")
+
+            self.postgres_dsn = (
+                f"host={db_host} "
+                f"port={db_port} "
+                f"dbname={db_name} "
+                f"user={db_user} "
+                f"password={db_password}"
+            )
 
         self.otel_collector_endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "otel-collector:4317")
         self.metrics_port = int(os.getenv("METRICS_PORT", "9100"))
