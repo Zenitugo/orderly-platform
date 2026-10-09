@@ -55,9 +55,9 @@ jobs:
 
         - name: Install Api Gateway Helm Chart
           run: |
-           helm install api-gateway ./api-gateway -n orderly
+           helm upgrade --install api-gateway ./api-gateway -n orderly
            
 
         - name: Install Order-worker Helm Chart
           run: |
-           helm install order-worker ./order-worker -n orderly
+           helm upgrade --install order-worker ./order-worker -n orderly
