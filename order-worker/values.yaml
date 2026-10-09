@@ -99,3 +99,12 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+database:
+  host: ""
+  port: ""
+  name: ""
+  username: "" 
+  existingSecret: orderly-db-credentials
+
+
