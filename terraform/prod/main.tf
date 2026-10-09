@@ -24,7 +24,8 @@ module "iam" {
     eks_cluster_role_name                       = var.eks_cluster_role_name
     node_group_role_name                        = var.node_group_role_name
     project_name                                = var.project_name
-    rds_secret_arn                              = module.rds.rds_secret_arn  
+    rds_secret_arn                              = module.rds.rds_secret_arn 
+    cluster_name                                = var.cluster_name 
 }
 
 module "eks" {
