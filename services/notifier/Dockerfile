@@ -17,8 +17,8 @@ RUN apt-get update \
     && rm -rf /usr/local/lib/node_modules/npm \
            /usr/local/bin/npm \
            /usr/local/bin/npx \
-           /usr/local/bin/corepack \
-    && useradd --create-home --uid 1000 appuser
+           /usr/local/bin/corepack 
+    
 
 WORKDIR /app
 COPY --from=builder /build/node_modules ./node_modules
