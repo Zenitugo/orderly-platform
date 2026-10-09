@@ -85,8 +85,6 @@ jobs:
             terraform init
             SECRET_ARN=$(terraform output -raw db_secretarn)
 
-        - name: Create External Secret from the secret created by AWS Secrets Manager
-          run: |
             aws secretsmanager get-secret-value \
               --secret-id "$SECRET_ARN" \
               --region eu-central-1 \
