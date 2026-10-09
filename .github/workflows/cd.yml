@@ -32,6 +32,10 @@ jobs:
           id: install
 
 
+        - name: Setup Terraform
+          uses: hashicorp/setup-terraform@v3
+
+
         - name: Update linux with eks config
           run: aws eks update-kubeconfig --region eu-central-1 --name Orderly_Cluster
 
@@ -70,3 +74,20 @@ jobs:
              --set-string image.repository="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/orderly-notifier"
 
         
+        - name: Apply ClusterSecretStore
+          run: |
+            kubectl apply -f k8s/external-secrets/cluster-secret-store.yaml
+
+        - name: Reterive Secret and store in variable
+          run: |
+            cd terraform/prod
+            SECRET_ARN=$(terraform output -raw db_secretarn)
+
+        - name: Create External Secret from the secret created by AWS Secrets Manager
+          run: |
+            aws secretsmanager get-secret-value \
+              --secret-id "$SECRET_ARN" \
+              --region eu-central-1 \
+              --query 'SecretString' \
+              --output text | jq 'fromjson | keys'
+
