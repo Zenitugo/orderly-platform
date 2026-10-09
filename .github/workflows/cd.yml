@@ -55,9 +55,18 @@ jobs:
 
         - name: Install Api Gateway Helm Chart
           run: |
-           helm upgrade --install api-gateway ./api-gateway -n orderly
+           helm upgrade --install api-gateway ./api-gateway -n orderly \
+           --set-string image.repository="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/orderly-apigateway"
            
 
         - name: Install Order-worker Helm Chart
           run: |
-           helm upgrade --install order-worker ./order-worker -n orderly
+           helm upgrade --install order-worker ./order-worker -n orderly \
+           --set-string image.repository="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/orderly-orderworker"
+
+        - name: Install Notifier Helm Chart
+          run: |
+            helm upgrade --install notifier ./notifier -n orderly \
+             --set-string image.repository="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/orderly-notifier"
+
+        
