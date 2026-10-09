@@ -96,6 +96,10 @@ jobs:
           env:
             SECRET_ARN: ${{ steps.secret-arn.outputs.secret_arn }}
           run: |
+            test -n "$SECRET_ARN" || {
+              echo "ERROR: SECRET_ARN is empty"
+              exit 1
+            }
             envsubst < k8s/external-secrets/orderly-db-secret.yaml | kubectl apply -f -
 
         - name: Wait for ExternalSecret
