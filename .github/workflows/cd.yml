@@ -86,6 +86,11 @@ jobs:
             SECRET_ARN=$(terraform output -raw db_secretarn)
             echo "secret_arn=$SECRET_ARN" >> "$GITHUB_OUTPUT"
 
+            if [ -z "$SECRET_ARN" ]; then
+              echo "ERROR: Terraform returned an empty RDS secret ARN"
+              exit 1
+            fi
+
             aws secretsmanager get-secret-value \
               --secret-id "$SECRET_ARN" \
               --region eu-central-1 \
