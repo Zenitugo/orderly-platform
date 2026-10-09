@@ -16,6 +16,7 @@ env:
 jobs:
   changes:
     runs-on: ubuntu-latest
+    outputs: 
     steps:
         - name: Checkout code
           uses: actions/checkout@v6
@@ -84,10 +85,25 @@ jobs:
             cd terraform/prod
             terraform init
             SECRET_ARN=$(terraform output -raw db_secretarn)
+            echo "secret_arn=$SECRET_ARN" >> "$GITHUB_OUTPUT
 
             aws secretsmanager get-secret-value \
               --secret-id "$SECRET_ARN" \
               --region eu-central-1 \
               --query 'SecretString' \
               --output text | jq 'keys'
+
+        - name: Apply ExternalSecret
+          env:
+            SECRET_ARN: ${{ steps.secret-arn.outputs.secret_arn }}
+          run: |
+            envsubst < k8s/external-secrets/orderly-db-secret.yaml | kubectl apply -f -
+
+        - name: Wait for ExternalSecret
+          run: |
+            kubectl wait \
+              --for=condition=Ready \
+              externalsecret/orderly-db-secret \
+              -n orderly \
+              --timeout=120s
 
