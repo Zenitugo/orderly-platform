@@ -76,7 +76,8 @@ jobs:
         
         - name: Apply ClusterSecretStore
           run: |
-            kubectl apply -f k8s/external-secrets/cluster-secret-store.yaml
+            cd k8s/external-secrets
+            kubectl apply -f cluster-secret-store.yaml
 
         - name: Reterive Secret and store in variable
           run: |
