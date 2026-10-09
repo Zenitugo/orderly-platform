@@ -82,6 +82,7 @@ jobs:
         - name: Reterive Secret and store in variable
           run: |
             cd terraform/prod
+            terraform init
             SECRET_ARN=$(terraform output -raw db_secretarn)
 
         - name: Create External Secret from the secret created by AWS Secrets Manager
