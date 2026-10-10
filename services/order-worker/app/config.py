@@ -23,7 +23,7 @@ class Config:
             db_password = os.getenv("POSTGRES_PASSWORD", "orderly")
 
 
-            self.postgres_dsn = (
+            self.postgres_dsn = make_dsn (
                 f"host={db_host} "
                 f"port={db_port} "
                 f"dbname={db_name} "
