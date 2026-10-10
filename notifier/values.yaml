@@ -105,3 +105,12 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+env:
+  KAFKA_BROKERS: ""
+  KAFKA_TOPIC_ORDERS_COMPLETED: "orders.completed"
+  KAFKA_CONSUMER_GROUP: "notifier"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
+  SERVICE_NAME: "notifier"
+  LOG_LEVEL: "info"
+  METRICS_PORT: "9200"
