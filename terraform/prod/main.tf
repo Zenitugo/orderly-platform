@@ -39,7 +39,7 @@ module "eks" {
     node_group_name                             = var.node_group_name
     node_group_role_arn                         = module.iam.node_group_role_arn
     instance_type                               = var.instance_type 
-    eks_nodes_sg                                = module.aws_eks_node_group 
+    eks_nodes_sg                                = module.sg.eks_nodes_sg 
 }
 
 module "rds" {
