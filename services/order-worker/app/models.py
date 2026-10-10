@@ -1,5 +1,6 @@
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import datetime, timezone
+
 
 @dataclass
 class OrderCreatedEvent:
@@ -44,4 +45,4 @@ class OrderCompletedEvent:
 
 
 def now_iso() -> str:
-    return datetime.now(UTC).isoformat()
+    return datetime.now(timezone.utc).isoformat()
