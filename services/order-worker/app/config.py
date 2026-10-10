@@ -1,5 +1,5 @@
 import os
-from psycopg2.extensions import make_dsn
+
 
 class Config:
     """Centralized env var loading, mirrors the pattern used in api-gateway."""
@@ -23,7 +23,7 @@ class Config:
             db_password = os.getenv("POSTGRES_PASSWORD", "orderly")
 
 
-            self.postgres_dsn = make_dsn (
+            self.postgres_dsn = (
                 f"host={db_host} "
                 f"port={db_port} "
                 f"dbname={db_name} "
