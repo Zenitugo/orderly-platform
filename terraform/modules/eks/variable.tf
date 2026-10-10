@@ -6,3 +6,4 @@ variable "node_group_role_arn" {}
 variable "private_subnet_2_id" {}
 variable "node_group_name" {}
 variable "instance_type" {}
+variable "eks_nodes_sg" {}
