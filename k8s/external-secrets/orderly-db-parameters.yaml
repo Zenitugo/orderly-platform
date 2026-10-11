@@ -1,0 +1,32 @@
+
+
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: orderly-db-credentials
+  namespace: orderly
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: aws-parameter-store
+    kind: ClusterSecretStore
+  target:
+    name: orderly-db-credentials
+    creationPolicy: Owner
+  data:
+    - secretKey: DB_HOST
+      remoteRef:
+        key: /orderly/prod/db/host
+      
+    - secretKey: DB_PORT
+      remoteRef:
+        key: /orderly/prod/db/port
+
+    - secretKey: DB_NAME
+      remoteRef:
+        key: /orderly/prod/db/name
+
+    - secretKey: DB_USERNAME
+      remoteRef:
+        key: /orderly/prod/db/username
+    
