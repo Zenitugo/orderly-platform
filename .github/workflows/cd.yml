@@ -1,0 +1,92 @@
+
+name: CD
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  update-helm-values:
+    name: Update Helm image values
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the commit built by Platform
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_branch }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
+
+      - name: Install yq
+        run: |
+          sudo wget -q \
+            https://github.com/mikefarah/yq/releases/download/v4.45.1/yq_linux_amd64 \
+            -O /usr/local/bin/yq
+          sudo chmod +x /usr/local/bin/yq
+
+      - name: Retrieve ECR repository URIs from SSM
+        id: ecr
+        shell: bash
+        run: |  
+            set -euo pipefail
+
+            cd terraform/prod
+            terraform init
+
+            echo "api_gateway=$(terraform output -raw api_gateway_repo)" >> "$GITHUB_OUTPUT"
+            echo "order_worker=$(terraform output -raw order_worker_repo)" >> "$GITHUB_OUTPUT"
+            echo "notifier=$(terraform output -raw notifier_repo)" >> "$GITHUB_OUTPUT"
+
+      - name: Update Helm values
+        env:
+          API_GATEWAY_URI: ${{ steps.ecr.outputs.api_gateway }}
+          ORDER_WORKER_URI: ${{ steps.ecr.outputs.order_worker }}
+          NOTIFIER_URI: ${{ steps.ecr.outputs.notifier }}
+        run: |
+          set -euo pipefail
+
+          yq -i '.image.repository = strenv(API_GATEWAY_URI) \
+          helm-api-gateway/values.yaml
+
+          yq -i '.image.repository = strenv(ORDER_WORKER_URI) \
+          helm-order-worker/values.yaml
+
+          yq -i '.image.repository = strenv(NOTIFIER_URI) \
+          helm-notifier/values.yaml
+
+      - name: Commit and push Helm values
+        env:
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if git diff --quiet; then
+            echo "No Helm values changed."
+            exit 0
+          fi
+
+          git add helm-api-gateway/values.yaml \
+                  helm-order-worker/values.yaml \
+                  helm-notifier/values.yaml
+
+          git commit -m "chore(gitops): deploy images ${IMAGE_TAG:0:12}"
+
+          git push origin "HEAD:${HEAD_BRANCH}"
+
+
