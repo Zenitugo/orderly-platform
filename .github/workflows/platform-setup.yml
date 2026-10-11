@@ -1,0 +1,149 @@
+#################  Github Actions CD Pipeline for Orderly #############################
+
+name: CD
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+        - completed
+
+env:  
+  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_REGION: eu-central-1
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    steps:
+        - name: Checkout code
+          uses: actions/checkout@v6
+
+
+        - name: Install Kubectl
+          uses: azure/setup-kubectl@v4
+
+
+        - name: Install helm
+          uses: azure/setup-helm@v5.0.0
+          with:
+            version-file: .tool-versions
+          id: install
+
+
+        - name: Setup Terraform
+          uses: hashicorp/setup-terraform@v3
+
+
+        - name: Update linux with eks config
+          run: aws eks update-kubeconfig --region eu-central-1 --name Orderly_Cluster
+
+
+        - name: Create namespace
+          run: |
+           kubectl create namespace orderly --dry-run=client -o yaml | kubectl apply -f -
+           kubectl create namespace external-secrets --dry-run=client -o yaml | kubectl apply -f -
+           kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
+
+
+        - name: Add External Secrets Helm Repository
+          run: |
+            helm repo add external-secrets https://charts.external-secrets.io
+            helm repo update
+
+            
+        - name: Install External Secrets Operator
+          run: |
+            helm upgrade --install external-secrets external-secrets/external-secrets -n external-secrets
+
+        
+        - name: Apply ClusterSecretStore
+          run: |
+            cd k8s/external-secrets
+            kubectl apply -f cluster-secret-store.yaml
+
+        - name: Reterive Secret and store in variable
+          id: secret-arn
+          run: |
+            cd terraform/prod
+            terraform init
+            SECRET_ARN=$(terraform output -raw db_secretarn)
+            echo "secret_arn=$SECRET_ARN" >> "$GITHUB_OUTPUT"
+
+
+            aws secretsmanager get-secret-value \
+              --secret-id "$SECRET_ARN" \
+              --region eu-central-1 \
+              --query 'SecretString' \
+              --output text | jq 'keys'
+
+        - name: Apply ExternalSecret
+          env:
+            SECRET_ARN: ${{ steps.secret-arn.outputs.secret_arn }}
+          run: |
+            envsubst '${SECRET_ARN}' < k8s/external-secrets/orderly-db-secret.yaml | kubectl apply -f -
+
+        - name: Wait for ExternalSecret
+          run: |
+            kubectl wait \
+              --for=condition=Ready \
+              externalsecret/orderly-db-secret \
+              -n orderly \
+              --timeout=120s
+
+        - name: Add ArgoCD Helm Repository
+          run: |
+            helm repo add argo https://argoproj.github.io/argo-helm
+            helm repo update
+
+
+        - name: Install Argo CD
+          run: |
+            helm upgrade --install argocd argo/argo-cd \
+              --namespace argocd \
+              --set server.service.type=ClusterIP \
+              --wait \
+              --timeout 10m   
+              
+        - name: Wait for Argo CD Application CRD
+          run: |
+            kubectl wait \
+              --for=condition=Established \
+              --timeout=120s \
+              crd/applications.argoproj.io
+
+        - name: Register Argo CD applications
+          run: |
+            kubectl apply -f argocd/apps/
+
+        # - name: Install Api Gateway Helm Chart
+        #   run: |
+        #    helm upgrade --install api-gateway ./api-gateway -n orderly \
+        #    --set-string image.repository="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/orderly-apigateway"
+           
+
+        # - name: Install Order-worker Helm Chart
+        #   run: |
+        #     cd terraform/prod
+
+        #     DB_ENDPOINT=$(terraform output -raw db_endpoint)
+        #     DB_PORT=$(terraform output -raw db_port)
+        #     DB_NAME=$(terraform output -raw db_name)
+        #     DB_USERNAME=$(terraform output -raw db_username)
+
+        #     cd ../..
+
+        #     helm upgrade --install order-worker ./order-worker -n orderly \
+        #       --set-string database.host="$DB_ENDPOINT" \
+        #       --set-string database.port="$DB_PORT" \
+        #       --set-string database.name="$DB_NAME" \
+        #       --set-string database.username="$DB_USERNAME" \
+        #       --set-string image.repository="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/orderly-orderworker"
+
+        # - name: Install Notifier Helm Chart
+        #   run: |
+        #     helm upgrade --install notifier ./notifier -n orderly \
+        #      --set-string image.repository="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/orderly-notifier"
+
+
