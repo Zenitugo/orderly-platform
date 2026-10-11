@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: orderly-order-worker
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Zenitugo/orderly-platform.git
+    targetRevision: HEAD
+    path: order-worker
+    helm:
+      releaseName: order-worker
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: orderly
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true

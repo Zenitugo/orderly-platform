@@ -1,0 +1,19 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: orderly-notifier
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Zenitugo/orderly-platform.git
+    targetRevision: HEAD
+    path: notifier
+    helm:
+      releaseName: notifier
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: orderly
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
