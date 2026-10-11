@@ -1,11 +1,8 @@
 #################  Github Actions CD Pipeline for Orderly #############################
 
-name: CD
+name: Platform
 on:
-  workflow_run:
-    workflows: ["CI"]
-    types:
-        - completed
+  workflow_dispatch:
 
 env:  
   AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
@@ -113,9 +110,11 @@ jobs:
               --timeout=120s \
               crd/applications.argoproj.io
 
-        - name: Register Argo CD applications
+
+
+        - name: Register Argo CD application
           run: |
-            kubectl apply -f argocd/apps/
+              kubectl apply -f argocd/apps/
 
         # - name: Install Api Gateway Helm Chart
         #   run: |
