@@ -88,7 +88,7 @@ jobs:
                   helm-order-worker/values.yaml \
                   helm-notifier/values.yaml
 
-          git commit -m "chore(gitops): deploy images ${IMAGE_TAG:0:12}"
+          git commit -m "chore(gitops): update ECR repository URIs"
 
           git push origin "HEAD:${HEAD_BRANCH}"
 
