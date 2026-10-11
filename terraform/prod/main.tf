@@ -26,6 +26,12 @@ module "iam" {
     project_name                                = var.project_name
     rds_secret_arn                              = module.rds.rds_secret_arn 
     cluster_name                                = var.cluster_name 
+    db_parameter_arns                           = [
+        aws_ssm_parameter.db_endpoint.arn,
+        aws_ssm_parameter.db_port.arn,
+        aws_ssm_parameter.db_name.arn,
+        aws_ssm_parameter.db_username.arn
+    ] 
 }
 
 
