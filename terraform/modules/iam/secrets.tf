@@ -12,6 +12,14 @@ resource "aws_iam_policy" "external_secrets" {
           "secretsmanager:GetSecretValue"
         ]
         Resource = var.rds_secret_arn
+      },
+      {
+        Effect = "Allow"
+        Action =[
+          "ssm:GetParameter",
+          "ssm:GetParameters"
+        ]
+        Resource = var.db_parameter_arns
       }
     ]
   })
