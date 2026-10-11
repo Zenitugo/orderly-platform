@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/Zenitugo/orderly-platform.git
     targetRevision: HEAD
-    path: order-worker
+    path: helm-order-worker
     helm:
       releaseName: order-worker
   destination:

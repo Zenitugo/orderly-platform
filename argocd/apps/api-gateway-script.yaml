@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/Zenitugo/orderly-platform.git
     targetRevision: HEAD
-    path: api-gateway
+    path: helm-api-gateway
     helm:
       releaseName: api-gateway
   destination:

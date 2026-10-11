@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/Zenitugo/orderly-platform.git
     targetRevision: HEAD
-    path: notifier
+    path: helm-notifier
     helm:
       releaseName: notifier
   destination:
