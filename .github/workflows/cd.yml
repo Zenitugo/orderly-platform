@@ -61,13 +61,13 @@ jobs:
         run: |
           set -euo pipefail
 
-          yq -i '.image.repository = strenv(API_GATEWAY_URI) \
+          yq -i '.image.repository = strenv(API_GATEWAY_URI)' \
           helm-api-gateway/values.yaml
 
-          yq -i '.image.repository = strenv(ORDER_WORKER_URI) \
+          yq -i '.image.repository = strenv(ORDER_WORKER_URI)' \
           helm-order-worker/values.yaml
 
-          yq -i '.image.repository = strenv(NOTIFIER_URI) \
+          yq -i '.image.repository = strenv(NOTIFIER_URI)' \
           helm-notifier/values.yaml
 
       - name: Commit and push Helm values
