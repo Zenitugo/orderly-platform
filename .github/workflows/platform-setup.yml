@@ -43,6 +43,9 @@ jobs:
            kubectl create namespace external-secrets --dry-run=client -o yaml | kubectl apply -f -
            kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
 
+        - name: Create a gp3 csi storage class
+          run: |
+            kubectl apply -f k8s/storage/gp3-storageclass.yaml
 
         - name: Add External Secrets Helm Repository
           run: |
@@ -88,6 +91,19 @@ jobs:
               externalsecret/orderly-db-secret \
               -n orderly \
               --timeout=120s
+
+        - name: Add kafka Helm Repository
+          run: |
+              helm repo add bitnami https://charts.bitnami.com/bitnami
+              helm repo update
+
+        - name: Install Kafka
+          run: |
+            helm upgrade --install kafka bitnami/kafka \
+              --namespace "$K8S_NAMESPACE" \
+              --values kafka-values.yaml \
+              --wait \
+              --timeout 15m
 
         - name: Add ArgoCD Helm Repository
           run: |
