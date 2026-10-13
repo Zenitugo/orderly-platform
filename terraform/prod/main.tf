@@ -64,5 +64,6 @@ module "add-on" {
     source                                      = "../modules/add-on"
     cluster_name                                = var.cluster_name 
     eks_id                                      = module.eks.eks_id
-    worker_nodes_id                             = module.eks.worker_nodes_id  
+    worker_nodes_id                             = module.eks.worker_nodes_id
+    ebs_csi_pod_identity_association            = module.iam.ebs_csi_pod_identity_association   
 }
