@@ -31,7 +31,9 @@ module "iam" {
         aws_ssm_parameter.db_port.arn,
         aws_ssm_parameter.db_name.arn,
         aws_ssm_parameter.db_username.arn
-    ] 
+    ]
+    eks_id                                      = module.eks.eks_id
+    worker_nodes_id                             = module.eks.worker_nodes_id   
 }
 
 
