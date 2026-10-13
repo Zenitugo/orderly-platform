@@ -69,4 +69,7 @@ resource "aws_eks_pod_identity_association" "external_secrets" {
   namespace       = "external-secrets"
   service_account = "external-secrets"
   role_arn        = aws_iam_role.external_secrets.arn
+
+  depends_on = [ var.eks_id,
+  var.worker_nodes_id ]
 }
