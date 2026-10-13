@@ -7,3 +7,7 @@ output "eks_cluster_role_arn" {
 output "node_group_role_arn" {
     value = aws_iam_role.node_group.arn
 }
+
+output "ebs_csi_pod_identity_association" {
+  value = aws_eks_pod_identity_association.ebs_csi.id
+}
