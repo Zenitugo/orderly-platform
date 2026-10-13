@@ -5,7 +5,7 @@ data "aws_iam_policy_document" "ebs_csi_assume_role" {
 
     principals {
       type        = "Service"
-      identifiers = ["://amazonaws.com"] 
+      identifiers = ["pods.eks.amazonaws.com"] 
     }
 
     actions = [
