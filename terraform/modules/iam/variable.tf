@@ -4,3 +4,5 @@ variable "project_name" {}
 variable "rds_secret_arn" {}
 variable "cluster_name" {}
 variable "db_parameter_arns" {}
+variable "eks_id" {}
+variable "worker_nodes_id" {}
