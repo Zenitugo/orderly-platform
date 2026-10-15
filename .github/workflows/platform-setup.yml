@@ -100,7 +100,7 @@ jobs:
         - name: Install Kafka
           run: |
             helm upgrade --install kafka bitnami/kafka \
-              --namespace "$K8S_NAMESPACE" \
+              --namespace orderly \
               --wait \
               --timeout 15m
 
