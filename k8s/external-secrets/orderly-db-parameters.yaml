@@ -30,3 +30,7 @@ spec:
       remoteRef:
         key: /orderly/prod/db/username
     
+    - secretKey: password
+      remoteRef:
+        key: ${SECRET_ARN}
+        property: password
