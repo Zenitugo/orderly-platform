@@ -57,8 +57,9 @@ spec:
 
             - name: POSTGRES_USER
               valueFrom: 
-                secretKeyRef: {{ .Values.database.existingSecret }}
-                key: DB_USERNAME
+                secretKeyRef: 
+                  name: {{ .Values.database.existingSecret }}
+                  key: DB_USERNAME
 
             - name: POSTGRES_PASSWORD
               valueFrom:
