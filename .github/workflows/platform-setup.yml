@@ -94,16 +94,22 @@ jobs:
 
         - name: Add kafka Helm Repository
           run: |
-              helm repo add bitnami https://charts.bitnami.com/bitnami
+              helm repo add helmforge https://repo.helmforge.dev
               helm repo update
 
         - name: Install Kafka
           run: |
-            helm upgrade --install kafka bitnami/kafka \
+              helm upgrade --install kafka helmforge/kafka \
               --namespace orderly \
+              --set architecture=single-broker \
+              --set image.repository=apache/kafka \
+              --set singleBroker.persistence.enabled=true \
+              --set singleBroker.persistence.storageClass=gp3-csi \
+              --set singleBroker.persistence.size=8Gi \
               --wait \
               --timeout 15m
 
+              
         - name: Add ArgoCD Helm Repository
           run: |
             helm repo add argo https://argoproj.github.io/argo-helm
