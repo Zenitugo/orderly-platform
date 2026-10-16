@@ -37,10 +37,20 @@ jobs:
       - name: Install Argo CD CLI
         uses: clowdhaus/argo-cd-action@v4.2.0
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  
         with:
           command: version
           options: --client
+
+      - name: Mask ECR image URIs
+        env:
+          API_GATEWAY_URI: ${{ steps.ecr.outputs.api_gateway }}
+          ORDER_WORKER_URI: ${{ steps.ecr.outputs.order_worker }}
+          NOTIFIER_URI: ${{ steps.ecr.outputs.notifier }}
+        run: |
+          echo "::add-mask::$API_GATEWAY_URI"
+          echo "::add-mask::$ORDER_WORKER_URI"
+          echo "::add-mask::$NOTIFIER_URI"
 
       - name: EKS access
         run: |
