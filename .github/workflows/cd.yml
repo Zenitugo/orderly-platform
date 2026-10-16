@@ -73,11 +73,11 @@ jobs:
           ORDER_WORKER_URI: ${{ steps.ecr.outputs.order_worker }}
           NOTIFIER_URI: ${{ steps.ecr.outputs.notifier }}
         run: | 
-          argocd app set helm-api-gateway \
+          argocd app set orderly-api-gateway \
             --helm-set-string image.repository="$API_GATEWAY_URI"
 
-          argocd app set helm-order-worker \
+          argocd app set orderly-order-worker \
             --helm-set-string image.repository="$ORDER_WORKER_URI"
 
-          argocd app set helm-notifier \
+          argocd app set ordrely-notifier \
             --helm-set-string image.repository="$NOTIFIER_URI"
