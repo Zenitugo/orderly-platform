@@ -42,15 +42,13 @@ jobs:
           command: version
           options: --client
 
-      - name: Verify EKS access
+      - name: EKS access
         run: |
           set -euo pipefail
 
           aws eks update-kubeconfig \
             --name Orderly_Cluster \
             --region eu-central-1
-
-          kubectl get namespaces
         
       - name: Retrieve ECR repository URIs from SSM
         id: ecr
@@ -71,6 +69,22 @@ jobs:
           PASSWORD: ${{ secrets.PASSWORD }}
         run: |
           set -euo pipefail
+          
+          kubectl port-forward \
+            svc/argocd-server \
+            8081:443 \
+            -n argocd \
+            > /tmp/argocd-port-forward.log 2>&1 &
+
+          echo $! > /tmp/argocd-port-forward.pid
+
+          for i in {1..15}; do
+            if curl -ks https://localhost:8081/healthz >/dev/null; then
+              break
+            fi
+            sleep 2
+          done
+
           argocd login "$ARGOCD_SERVER" \
             --username admin \
             --password "$PASSWORD" \
