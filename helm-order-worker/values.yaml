@@ -89,4 +89,5 @@ nodeSelector: {}
 tolerations: []
 affinity: {}
 database:
-  existingSecret: orderly-db-credentials
+  credentialsSecret: orderly-db-credentials
+  passwordSecret: orderly-db-password
