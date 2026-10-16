@@ -90,6 +90,12 @@ jobs:
             --password "$PASSWORD" \
             --grpc-web \
             --insecure
+      - name: Diagnose Argo CD permissions
+        run: |
+          set -euo pipefail
+
+          argocd account get-user-info
+          argocd app get orderly-api-gateway
 
       - name: Set ECR Registries on ArgoCD Applications
         env:
@@ -103,5 +109,5 @@ jobs:
           argocd app set orderly-order-worker \
             --helm-set-string image.repository="$ORDER_WORKER_URI"
 
-          argocd app set ordrely-notifier \
+          argocd app set orderly-notifier \
             --helm-set-string image.repository="$NOTIFIER_URI"
