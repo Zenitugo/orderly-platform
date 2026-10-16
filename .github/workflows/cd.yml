@@ -41,6 +41,16 @@ jobs:
         with:
           command: version
           options: --client
+
+      - name: Verify EKS access
+        run: |
+          set -euo pipefail
+
+          aws eks update-kubeconfig \
+            --name Orderly_Cluster \
+            --region eu-central-1
+
+          kubectl get namespaces
         
       - name: Retrieve ECR repository URIs from SSM
         id: ecr
