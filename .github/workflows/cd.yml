@@ -33,13 +33,15 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      - name: Install yq
-        run: |
-          sudo wget -q \
-            https://github.com/mikefarah/yq/releases/download/v4.45.1/yq_linux_amd64 \
-            -O /usr/local/bin/yq
-          sudo chmod +x /usr/local/bin/yq
-
+      
+      - name: Install Argo CD CLI
+        uses: clowdhaus/argo-cd-action@v4.2.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          command: version
+          options: --client
+        
       - name: Retrieve ECR repository URIs from SSM
         id: ecr
         shell: bash
@@ -53,43 +55,29 @@ jobs:
             echo "order_worker=$(terraform output -raw order_worker_repo)" >> "$GITHUB_OUTPUT"
             echo "notifier=$(terraform output -raw notifier_repo)" >> "$GITHUB_OUTPUT"
 
-      - name: Update Helm values
+      - name: Login to ArgoCD Applications
+        env:
+          ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
+          PASSWORD: ${{ secrets.PASSWORD }}
+        run: |
+          set -euo pipefail
+          argocd login "$ARGOCD_SERVER" \
+            --username admin \
+            --auth-token "$PASSWORD" \
+            --grpc-web \
+            --insecure
+
+      - name: Set ECR Registries on ArgoCD Applications
         env:
           API_GATEWAY_URI: ${{ steps.ecr.outputs.api_gateway }}
           ORDER_WORKER_URI: ${{ steps.ecr.outputs.order_worker }}
           NOTIFIER_URI: ${{ steps.ecr.outputs.notifier }}
-        run: |
-          set -euo pipefail
+        run: | 
+          argocd app set helm-api-gateway \
+            --helm-set-string image.repository="$API_GATEWAY_URI"
 
-          yq -i '.image.repository = strenv(API_GATEWAY_URI)' \
-          helm-api-gateway/values.yaml
+          argocd app set helm-order-worker \
+            --helm-set-string image.repository="$ORDER_WORKER_URI"
 
-          yq -i '.image.repository = strenv(ORDER_WORKER_URI)' \
-          helm-order-worker/values.yaml
-
-          yq -i '.image.repository = strenv(NOTIFIER_URI)' \
-          helm-notifier/values.yaml
-
-      - name: Commit and push Helm values
-        env:
-          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
-        run: |
-          set -euo pipefail
-
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          if git diff --quiet; then
-            echo "No Helm values changed."
-            exit 0
-          fi
-
-          git add helm-api-gateway/values.yaml \
-                  helm-order-worker/values.yaml \
-                  helm-notifier/values.yaml
-
-          git commit -m "chore(gitops): update ECR repository URIs"
-
-          git push origin "HEAD:${HEAD_BRANCH}"
-
-
+          argocd app set helm-notifier \
+            --helm-set-string image.repository="$NOTIFIER_URI"
