@@ -82,13 +82,13 @@ jobs:
           env:
             SECRET_ARN: ${{ steps.secret-arn.outputs.secret_arn }}
           run: |
-            envsubst '${SECRET_ARN}' < k8s/external-secrets/orderly-db-parameters.yaml | kubectl apply -f -
+            envsubst '${SECRET_ARN}' < k8s/external-secrets/orderly-db-secret.yaml | kubectl apply -f -
 
         - name: Wait for ExternalSecret
           run: |
             kubectl wait \
               --for=condition=Ready \
-              externalsecret/orderly-db-credentials \
+              externalsecret/orderly-db-secret \
               -n orderly \
               --timeout=120s
 
