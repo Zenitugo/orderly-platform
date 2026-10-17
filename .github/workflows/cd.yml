@@ -33,6 +33,10 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
+
+      - name: Install Kubectl
+        uses: azure/setup-kubectl@v4
+
       
       - name: Install Argo CD CLI
         uses: clowdhaus/argo-cd-action@v4.2.0
@@ -100,6 +104,12 @@ jobs:
             --password "$PASSWORD" \
             --grpc-web \
             --insecure
+
+      - name: Register Argo CD application
+        run: |
+            kubectl apply -f argocd/apps/
+
+
       - name: Diagnose Argo CD permissions
         run: |
           set -euo pipefail
