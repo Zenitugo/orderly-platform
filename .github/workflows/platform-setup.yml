@@ -92,6 +92,14 @@ jobs:
               -n orderly \
               --timeout=120s
 
+        - name: Apply Database  Credentials
+          run: |  
+            kubectl apply -f k8s/external-secrets/orderly-db-parameters.yaml
+
+        - name: Apply StorageClass
+          run: |
+            kubectl apply -f k8s/storage/gp3-storageclass.yaml
+
         - name: Add kafka Helm Repository
           run: |
               helm repo add helmforge https://repo.helmforge.dev
@@ -130,12 +138,6 @@ jobs:
               --for=condition=Established \
               --timeout=120s \
               crd/applications.argoproj.io
-
-
-
-        - name: Register Argo CD application
-          run: |
-              kubectl apply -f argocd/apps/
 
         # - name: Install Api Gateway Helm Chart
         #   run: |
