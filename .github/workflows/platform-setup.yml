@@ -121,6 +121,22 @@ jobs:
               --wait \
               --timeout 15m
 
+        - name: Ensure Kafka topics exist
+          run: |
+            set -euo pipefail
+
+            kubectl rollout status statefulset/kafka-kafka \
+              -n orderly --timeout=180s
+
+            kubectl exec -n orderly kafka-kafka-0 -- \
+              /opt/kafka/bin/kafka-topics.sh \
+              --bootstrap-server localhost:9092 \
+              --create \
+              --if-not-exists \
+              --topic orders.completed \
+              --partitions 1 \
+              --replication-factor 1
+
               
         - name: Add ArgoCD Helm Repository
           run: |
