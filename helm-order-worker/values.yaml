@@ -91,3 +91,5 @@ affinity: {}
 database:
   credentialsSecret: orderly-db-credentials
   passwordSecret: orderly-db-password
+env:
+  KAFKA_BROKERS: "kafka-kafka:9092"
