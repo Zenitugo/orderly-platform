@@ -95,7 +95,7 @@ nodeSelector: {}
 tolerations: []
 affinity: {}
 env:
-  KAFKA_BROKERS: ""
+  KAFKA_BROKERS: "kafka-kafka:9092"
   KAFKA_TOPIC_ORDERS_COMPLETED: "orders.completed"
   KAFKA_CONSUMER_GROUP: "notifier"
   OTEL_EXPORTER_OTLP_ENDPOINT: "otel-collector:4317"
