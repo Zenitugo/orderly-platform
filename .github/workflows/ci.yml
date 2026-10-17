@@ -4,8 +4,26 @@ name: CI
 on:
   push:
     branches: [ master ]
+    paths-ignore:
+      - 'helm-api-gateway/**'
+      - 'helm-notifier/**'
+      - 'helm-order-worker/**'
+      - 'k8s/**'
+      - '.github/workflows/platform-setup.yml'
+      - 'terraform/**'
+      - '.github/workflows/infra.yml'
+      - 'README.md'
   pull_request:
     branches: [ master ]
+    paths-ignore:
+      - 'helm-api-gateway/**'
+      - 'helm-notifier/**'
+      - 'helm-order-worker/**'
+      - 'k8s/**'
+      - '.github/workflows/platform-setup.yml'
+      - 'terraform/**'
+      - '.github/workflows/infra.yml'
+      - 'README.md'    
   workflow_dispatch:     #This makes me run the script manually. This is a project so I have to delete infra. 
                          # When I create it back i need the whole script to run.
 
