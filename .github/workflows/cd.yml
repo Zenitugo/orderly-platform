@@ -46,16 +46,6 @@ jobs:
           command: version
           options: --client
 
-      - name: Mask ECR image URIs
-        env:
-          API_GATEWAY_URI: ${{ steps.ecr.outputs.api_gateway }}
-          ORDER_WORKER_URI: ${{ steps.ecr.outputs.order_worker }}
-          NOTIFIER_URI: ${{ steps.ecr.outputs.notifier }}
-        run: |
-          echo "::add-mask::$API_GATEWAY_URI"
-          echo "::add-mask::$ORDER_WORKER_URI"
-          echo "::add-mask::$NOTIFIER_URI"
-
       - name: EKS access
         run: |
           set -euo pipefail
@@ -116,6 +106,16 @@ jobs:
 
           argocd account get-user-info
           argocd app get orderly-api-gateway
+
+      - name: Mask ECR image URIs
+        env:
+          API_GATEWAY_URI: ${{ steps.ecr.outputs.api_gateway }}
+          ORDER_WORKER_URI: ${{ steps.ecr.outputs.order_worker }}
+          NOTIFIER_URI: ${{ steps.ecr.outputs.notifier }}
+        run: |
+          echo "::add-mask::$API_GATEWAY_URI"
+          echo "::add-mask::$ORDER_WORKER_URI"
+          echo "::add-mask::$NOTIFIER_URI"
 
       - name: Set ECR Registries on ArgoCD Applications
         env:
