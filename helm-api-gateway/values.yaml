@@ -94,3 +94,5 @@ volumeMounts: []
 nodeSelector: {}
 tolerations: []
 affinity: {}
+env:
+  KAFKA_BROKERS: "kafka-kafka:9092"
