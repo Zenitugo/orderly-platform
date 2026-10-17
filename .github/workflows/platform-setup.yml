@@ -92,6 +92,10 @@ jobs:
               -n orderly \
               --timeout=120s
 
+        - name: Apply ClusterParameterStore
+          run: |
+            kubectl apply -f k8s/external-secrets/cluster-parameter-store.yaml
+
         - name: Apply Database  Credentials
           run: |  
             kubectl apply -f k8s/external-secrets/orderly-db-parameters.yaml
