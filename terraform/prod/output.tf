@@ -16,3 +16,7 @@ output "order_worker_repo" {
 output "notifier_repo" {
   value = module.ecr.notifier_repo
 }
+
+output "frontend_repo" {
+  value = module.ecr.frontend_repo
+}
