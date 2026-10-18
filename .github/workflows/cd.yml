@@ -66,6 +66,7 @@ jobs:
             echo "api_gateway=$(terraform output -raw api_gateway_repo)" >> "$GITHUB_OUTPUT"
             echo "order_worker=$(terraform output -raw order_worker_repo)" >> "$GITHUB_OUTPUT"
             echo "notifier=$(terraform output -raw notifier_repo)" >> "$GITHUB_OUTPUT"
+            echo "frontend=$(terraform output -raw frontend_repo)" >> "$GITHUB_OUTPUT"
 
       - name: Login to ArgoCD Applications
         env:
@@ -112,16 +113,19 @@ jobs:
           API_GATEWAY_URI: ${{ steps.ecr.outputs.api_gateway }}
           ORDER_WORKER_URI: ${{ steps.ecr.outputs.order_worker }}
           NOTIFIER_URI: ${{ steps.ecr.outputs.notifier }}
+          FRONTEND_URI: ${{ steps.ecr.outputs.frontend }}
         run: |
           echo "::add-mask::$API_GATEWAY_URI"
           echo "::add-mask::$ORDER_WORKER_URI"
           echo "::add-mask::$NOTIFIER_URI"
+          echo "::add-mask::$FRONTEND_URI"
 
       - name: Set ECR Registries on ArgoCD Applications
         env:
           API_GATEWAY_URI: ${{ steps.ecr.outputs.api_gateway }}
           ORDER_WORKER_URI: ${{ steps.ecr.outputs.order_worker }}
           NOTIFIER_URI: ${{ steps.ecr.outputs.notifier }}
+          FRONTEND_URI: ${{ steps.ecr.outputs.frontend }}
         run: | 
           argocd app set orderly-api-gateway \
             --helm-set-string image.repository="$API_GATEWAY_URI"
@@ -131,3 +135,6 @@ jobs:
 
           argocd app set orderly-notifier \
             --helm-set-string image.repository="$NOTIFIER_URI"
+
+          argocd app set orderly-frontend \
+            --helm-set-string image.repository="$FRONTEND_URI"
