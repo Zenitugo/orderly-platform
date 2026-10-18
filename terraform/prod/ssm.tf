@@ -67,3 +67,11 @@ resource "aws_ssm_parameter" "notifier_image" {
   }
 }
 
+resource "aws_ssm_parameter" "frontend_image" {
+  name        = "/${var.project_name}/${var.environment_name}/ecr/frontend"
+  type        = "String"
+  value       = module.ecr.frontend_repo
+  tags = {
+    Environment = var.environment_name
+  }
+}
