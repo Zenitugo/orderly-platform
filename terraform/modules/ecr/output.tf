@@ -13,3 +13,7 @@ output "order_worker_repo" {
 output "notifier_repo" {
     value = aws_ecr_repository.notifier.repository_url
 }
+
+output "frontend_repo" {
+    value = aws_ecr_repository.frontend.repository_url
+}
