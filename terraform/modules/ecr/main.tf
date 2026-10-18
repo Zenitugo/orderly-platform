@@ -33,3 +33,15 @@ resource "aws_ecr_repository" "notifier" {
         scan_on_push = true
     }
 }
+
+
+################## CREATE ECR REPO FOR Frontend ############################
+resource "aws_ecr_repository" "frontend" {
+  name = "${var.project_name}-frontend"
+  image_tag_mutability = "MUTABLE"
+  force_delete = true
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+}
