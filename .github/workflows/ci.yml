@@ -42,6 +42,7 @@ jobs:
       api-gateway: ${{ steps.filter.outputs.api-gateway }}
       order-worker: ${{ steps.filter.outputs.order-worker }}
       notifier: ${{ steps.filter.outputs.notifier }}
+      frontend: ${{ steps.filter.outputs.frontend }}
 
     steps:
       # Checkout the repository
@@ -64,6 +65,9 @@ jobs:
               - '.github/workflows/ci.yml'
             notifier:
               - 'services/notifier/**'  
+              - '.github/workflows/ci.yml'
+            frontend:
+              - 'services/frontend/**'
               - '.github/workflows/ci.yml'
 
   
@@ -198,10 +202,35 @@ jobs:
           process.exit(0);
           "
  
+  ####################### Ordely react app Checks ########################################
+  frontend:
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: services/frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: services/frontend
+        run: npm ci
+
+      - name: Build
+        working-directory: services/frontend
+        run: npm run build
+
+
 
   ###################### Build, Scan & Push Docker Images #################################        
   build-and-push:
-    needs: [changes, api-gateway, order-worker, notifier]
+    needs: [changes, api-gateway, order-worker, notifier, frontend]
     if: |
       always() &&
       (
@@ -217,7 +246,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        service: [api-gateway, order-worker, notifier]
+        service: [api-gateway, order-worker, notifier, frontend]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -239,6 +268,7 @@ jobs:
             api-gateway)  changed="${{ needs.changes.outputs.api-gateway }}" ;;
             order-worker) changed="${{ needs.changes.outputs.order-worker }}" ;;
             notifier)     changed="${{ needs.changes.outputs.notifier }}" ;;
+            frontend)     changed="${{ needs.changes.outputs.frontend }}" ;;
           esac
           echo "changed=${changed}" >> "$GITHUB_OUTPUT"
 
