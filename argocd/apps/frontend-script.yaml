@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: orderly-frontend
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/Zenitugo/orderly-platform.git
+    targetRevision: HEAD
+    path: helm-frontend
+    helm:
+      releaseName: order-worker
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: orderly
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
