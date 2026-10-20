@@ -11,3 +11,7 @@ output "node_group_role_arn" {
 output "ebs_csi_pod_identity_association" {
   value = aws_eks_pod_identity_association.ebs_csi.id
 }
+
+output "aws_load_balancer_controller_role_arn" {
+  value       = aws_iam_role.lb_controller.arn
+}
