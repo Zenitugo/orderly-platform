@@ -58,6 +58,36 @@ jobs:
             helm upgrade --install external-secrets external-secrets/external-secrets -n external-secrets
 
         
+        - name: Wait for External Secrets webhook
+          run: |
+            set -euo pipefail
+
+            echo "Waiting for ESO webhook deployment..."
+            kubectl rollout status deployment/external-secrets-webhook \
+              -n external-secrets \
+              --timeout=180s
+
+            echo "Waiting for webhook Service endpoints..."
+            for i in $(seq 1 30); do
+              ENDPOINTS=$(kubectl get endpoints external-secrets-webhook \
+                -n external-secrets \
+                -o jsonpath='{.subsets[*].addresses[*].ip}')
+
+              if [ -n "$ENDPOINTS" ]; then
+                echo "Webhook endpoints are ready: $ENDPOINTS"
+                exit 0
+              fi
+
+              echo "Webhook has no ready endpoints yet ($i/30)"
+              sleep 5
+            done
+
+            echo "ERROR: ESO webhook has no ready endpoints."
+            kubectl get pods,svc,endpoints -n external-secrets
+            exit 
+
+
+        
         - name: Apply ClusterSecretStore
           run: |
             cd k8s/external-secrets
