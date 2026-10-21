@@ -47,6 +47,34 @@ jobs:
           run: |
             kubectl apply -f k8s/storage/gp3-storageclass.yaml
 
+        - name: Add AWS Load Balancer Controller Helm Repository
+          run: |
+            helm repo add eks https://aws.github.io/eks-charts
+            helm repo update eks
+
+        - name: Install AWS Load Balancer Controller
+          run: |
+            helm upgrade --install aws-load-balancer-controller \
+              eks/aws-load-balancer-controller \
+              --namespace kube-system \
+              --version 1.14.0 \
+              --set clusterName=Orderly_Cluster \
+              --set region=eu-central-1 \
+              --set vpcId=vpc-02ea2d70cf48b4292 \
+              --set serviceAccount.create=true \
+              --set serviceAccount.name=aws-load-balancer-controller \
+              --wait \
+              --timeout 10m
+
+        - name: Verify AWS Load Balancer Controller
+          run: |
+            kubectl rollout status deployment/aws-load-balancer-controller \
+              -n kube-system \
+              --timeout=300s
+
+            kubectl get deployment aws-load-balancer-controller \
+              -n kube-system
+
         - name: Add External Secrets Helm Repository
           run: |
             helm repo add external-secrets https://charts.external-secrets.io
@@ -85,7 +113,6 @@ jobs:
             echo "ERROR: ESO webhook has no ready endpoints."
             kubectl get pods,svc,endpoints -n external-secrets
             exit 
-
 
         
         - name: Apply ClusterSecretStore
