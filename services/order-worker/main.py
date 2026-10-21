@@ -7,8 +7,8 @@ from app.db import Database
 from app.logger import get_logger, log_with_fields
 from app.metrics import start_metrics_server
 from app.producer import CompletedEventProducer
-from app.telemetry import init_tracer
 from app.query_server import start_query_server
+from app.telemetry import init_tracer
 
 
 def main():
