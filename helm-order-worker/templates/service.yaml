@@ -11,5 +11,9 @@ spec:
       targetPort: http
       protocol: TCP
       name: http
+    - port: {{ .Values.service.httpPort }}
+      targetPort: orders-http
+      protocol: TCP
+      name: orders-http
   selector:
     {{- include "order-worker.selectorLabels" . | nindent 4 }}

@@ -72,6 +72,9 @@ spec:
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
+            - name: orders-http
+              containerPort: {{ .Values.service.httpPort }}
+              protocol: TCP
         {{- with .Values.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}
