@@ -8,3 +8,7 @@ output "eks_id" {
 output worker_nodes_id {
     value = aws_eks_node_group.eks_node_group.id
 }
+
+output "cluster_name" {
+  value = aws_eks_cluster.eks_cluster.name
+}
