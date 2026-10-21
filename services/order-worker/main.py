@@ -8,6 +8,7 @@ from app.logger import get_logger, log_with_fields
 from app.metrics import start_metrics_server
 from app.producer import CompletedEventProducer
 from app.telemetry import init_tracer
+from app.query_server import start_query_server
 
 
 def main():
@@ -17,6 +18,16 @@ def main():
 
     db = Database(config.postgres_dsn)
     db.init_schema()
+    query_thread = threading.Thread(
+    target=start_query_server,
+    args=(db, config.query_port),
+    daemon=True,
+    )
+    query_thread.start()
+    log_with_fields(
+        logger, "info", "order query server started",
+        port=config.query_port,
+    )
     log_with_fields(logger, "info", "database schema ready")
 
     start_metrics_server(config.metrics_port)
