@@ -1,8 +1,9 @@
-
 import json
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse
+
+from psycopg2 import Error as PsycopgError
 
 
 def start_query_server(db, port=8080):
@@ -33,8 +34,9 @@ def start_query_server(db, port=8080):
 
                 self.send_json(200, result)
 
-            except Exception:
+            except PsycopgError:
                 self.send_json(500, {"message": "Failed to retrieve orders"})
+                return
 
         def serialize_order(self, order):
             return {
