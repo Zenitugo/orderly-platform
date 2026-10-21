@@ -53,5 +53,50 @@ class Database:
         finally:
             self.pool.putconn(conn)
 
+    
+    def get_order(self, order_id: str):
+        conn = self.pool.getconn()
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT order_id, customer_id, item, quantity,
+                           status, failure_reason, created_at, updated_at
+                    FROM orders
+                    WHERE order_id = %s
+                    """,
+                    (order_id,),
+                )
+                row = cur.fetchone()
+
+                if row is None:
+                    return None
+
+                columns = [desc[0] for desc in cur.description]
+                return dict(zip(columns, row))
+        finally:
+            self.pool.putconn(conn)
+
+    def list_orders(self):
+        conn = self.pool.getconn()
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT order_id, customer_id, item, quantity,
+                           status, failure_reason, created_at, updated_at
+                    FROM orders
+                    ORDER BY created_at DESC
+                    """
+                )
+                rows = cur.fetchall()
+                columns = [desc[0] for desc in cur.description]
+                return [
+                    dict(zip(columns, row))
+                    for row in rows
+                ]
+        finally:
+            self.pool.putconn(conn)
+
     def close(self):
         self.pool.closeall()

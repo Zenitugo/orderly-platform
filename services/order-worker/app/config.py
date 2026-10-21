@@ -14,6 +14,7 @@ class Config:
         self.kafka_consumer_group = os.getenv("KAFKA_CONSUMER_GROUP", "order-worker")
 
         self.postgres_dsn = os.getenv("POSTGRES_DSN")
+        self.query_port = int(os.getenv("QUERY_PORT", "8080"))
 
         if not self.postgres_dsn:
             db_host = os.getenv("POSTGRES_HOST", "postgres")
