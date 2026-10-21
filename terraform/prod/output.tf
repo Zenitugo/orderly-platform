@@ -20,3 +20,15 @@ output "notifier_repo" {
 output "frontend_repo" {
   value = module.ecr.frontend_repo
 }
+
+
+############# output eks cluster name ####################
+output "cluster_name" {
+  value = module.eks.cluster_name
+}
+
+
+############ ouput VPC ID #####################
+output "vpc_id" {
+  value = module.vpc.vpc_id
+}
