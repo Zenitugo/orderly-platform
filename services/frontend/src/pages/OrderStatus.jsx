@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import money, { findOrder, getStatus } from "../api.js";
+import { findOrder, getStatus, money } from "../api.js";
 
 export default function OrderStatus() {
   const { id } = useParams();
