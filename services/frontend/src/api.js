@@ -12,6 +12,7 @@ const read = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; 
 const write = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* storage unavailable */ } };
 const json = { "Content-Type": "application/json" };
 
+export const money = n => "$" + Number(n).toFixed(2);
 export async function getProducts() {
   try { const r = await fetch("/api/products"); if (r.ok) return { items: await r.json(), live: true }; } catch { /* use fallback */ }
   return { items: [...SEED, ...read("products", [])], live: false };

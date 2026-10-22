@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { findOrder, getStatus } from "../api.js";
+import money, { findOrder, getStatus } from "../api.js";
 
 export default function OrderStatus() {
   const { id } = useParams();
@@ -35,6 +35,8 @@ export default function OrderStatus() {
         <section className="card"><h2>Order {id.slice(0, 8)}</h2><div className="body">
           <strong>{o.item}</strong>
           <div className="sum"><span>Units</span><b>{o.qty || "–"}</b></div>
+          {o.price != null && <div className="sum"><span>Unit price</span><b>{money(o.price)}</b></div>}
+          {o.total != null && <div className="sum"><span>Total</span><b>{money(o.total)}</b></div>}
           <div className="sum"><span>Customer</span><b>{o.customer || "–"}</b></div>
         </div></section>
         <section className="card"><h2>Status</h2>
