@@ -2,6 +2,10 @@ import json
 import random
 import time
 
+from confluent_kafka import Consumer, KafkaError
+from opentelemetry import propagate
+from opentelemetry.propagators.textmap import Getter
+
 from app.config import config
 from app.logger import log_with_fields
 from app.metrics import (
@@ -10,9 +14,6 @@ from app.metrics import (
     orders_processed_total,
 )
 from app.models import OrderCompletedEvent, OrderCreatedEvent, now_iso
-from confluent_kafka import Consumer, KafkaError
-from opentelemetry import propagate
-from opentelemetry.propagators.textmap import Getter
 
 
 class _HeaderGetter(Getter):
