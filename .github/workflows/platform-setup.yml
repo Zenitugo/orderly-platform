@@ -249,6 +249,10 @@ jobs:
               --timeout=120s \
               crd/applications.argoproj.io
 
+        - name: Create an Ingress Rule
+          run: |
+            kubectl apply -f k8s/ingress/orderly-ingress.yaml
+
         # - name: Install Api Gateway Helm Chart
         #   run: |
         #    helm upgrade --install api-gateway ./api-gateway -n orderly \
