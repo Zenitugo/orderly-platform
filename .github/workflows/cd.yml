@@ -83,9 +83,22 @@ jobs:
 
           echo $! > /tmp/argocd-port-forward.pid
 
-          for i in {1..15}; do
+          for i in {1..30}; do
             if curl -ks https://localhost:8081/healthz >/dev/null; then
+              echo "ArgoCD is reachable"
               break
+            fi
+
+            if ! kill -0 "$(cat /tmp/argocd-port-forward.pid)" 2>/dev/null; then
+              echo "Port-forward process exited:"
+              cat /tmp/argocd-port-forward.log
+              exit 1
+            fi
+
+            if [ "$i" -eq 30 ]; then
+              echo "Argo CD server did not become reachable:"
+              cat /tmp/argocd-port-forward.log
+              exit 1
             fi
             sleep 2
           done
