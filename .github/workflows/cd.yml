@@ -101,6 +101,20 @@ jobs:
             kubectl apply -f argocd/apps/
 
 
+      - name: Register and sync Prometheus and Grafana
+        run: |
+          set -euo pipefail
+
+          kubectl apply -f argocd/observability/kube-prometheus-stack.yaml
+
+          argocd app sync kube-prometheus-stack
+
+          argocd app wait kube-prometheus-stack \
+            --sync \
+            --health \
+            --timeout 600
+
+
       - name: Diagnose Argo CD permissions
         run: |
           set -euo pipefail
