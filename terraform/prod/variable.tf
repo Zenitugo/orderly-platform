@@ -12,3 +12,6 @@ variable "node_group_name" {}
 variable "instance_type" {}
 variable "database_username" {}
 variable "environment_name" {}
+variable "desired_size" {}
+variable "min_size" {}
+variable "max_size" {}
