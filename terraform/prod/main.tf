@@ -51,6 +51,11 @@ module "eks" {
     desired_size                                = var.desired_size
     min_size                                    = var.min_size
     max_size                                    = var.max_size
+    observability_desired_size                  = var.observability_desired_size
+    observability_instance_type                 = var.observability_instance_type
+    observability_max_size                      = var.observability_max_size
+    observability_min_size                      = var.observability_min_size
+    observability_node_group_name               = var.observability_node_group_name  
 }
 
 module "rds" {
