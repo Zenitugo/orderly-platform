@@ -12,3 +12,6 @@ node_group_name       = "Ordely_worker_nodes"
 instance_type         = "t3.medium"
 database_username     = "orderlyadmin"
 environment_name      = "prod" 
+desired_size          = 3
+min_size              = 1
+max_size              = 4
