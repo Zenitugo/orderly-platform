@@ -31,6 +31,10 @@ resource "aws_eks_node_group" "eks_node_group" {
     max_unavailable        = 1
   }
 
+  labels = {
+    workload = var.app_workload
+  }
+
   tags = {
     Name = var.node_group_name
   }
@@ -90,7 +94,7 @@ resource "aws_eks_node_group" "observability_node_group" {
   }
 
   labels = {
-    workload = "observability"
+    workload = var.monitoring_workload
   }
 
   tags = {
