@@ -1,6 +1,8 @@
 
 grafana:
   enabled: true
+  nodeSelector:
+    workload: observability
   resources:
     requests:
       cpu: 50m
@@ -13,6 +15,8 @@ prometheus:
   prometheusSpec:
     retention: 24h
     storageSpec: {}
+    nodeSelector:
+      workload: observability
     resources:
       requests:
         cpu: 100m
