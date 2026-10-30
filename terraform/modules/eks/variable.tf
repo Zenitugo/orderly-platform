@@ -7,3 +7,6 @@ variable "private_subnet_2_id" {}
 variable "node_group_name" {}
 variable "instance_type" {}
 variable "eks_nodes_sg" {}
+variable "desired_size" {}
+variable "min_size" {}
+variable "max_size" {}
