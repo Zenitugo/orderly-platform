@@ -20,3 +20,5 @@ variable "observability_instance_type" {}
 variable "observability_desired_size" {}
 variable "observability_min_size" {}
 variable "observability_max_size" {}
+variable "app_workload" {}
+variable "monitoring_workload" {}
