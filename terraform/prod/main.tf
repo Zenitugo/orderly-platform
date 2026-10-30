@@ -48,6 +48,9 @@ module "eks" {
     node_group_role_arn                         = module.iam.node_group_role_arn
     instance_type                               = var.instance_type 
     eks_nodes_sg                                = module.sg.eks_nodes_sg 
+    desired_size                                = var.desired_size
+    min_size                                    = var.min_size
+    max_size                                    = var.max_size
 }
 
 module "rds" {
