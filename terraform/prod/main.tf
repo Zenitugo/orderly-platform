@@ -55,7 +55,9 @@ module "eks" {
     observability_instance_type                 = var.observability_instance_type
     observability_max_size                      = var.observability_max_size
     observability_min_size                      = var.observability_min_size
-    observability_node_group_name               = var.observability_node_group_name  
+    observability_node_group_name               = var.observability_node_group_name 
+    app_workload                                = var.app_workload
+    monitoring_workload                         = var.monitoring_workload  
 }
 
 module "rds" {
