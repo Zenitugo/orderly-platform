@@ -20,3 +20,5 @@ observability_max_size         = 2
 observability_min_size         = 1
 observability_instance_type    = "t3.large"
 observability_node_group_name  =  "orderly_observability_worker_node"
+app_workload                   = "application"
+monitoring_workload            = "observability"  
