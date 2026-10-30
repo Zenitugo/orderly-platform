@@ -15,3 +15,8 @@ variable "environment_name" {}
 variable "desired_size" {}
 variable "min_size" {}
 variable "max_size" {}
+variable "observability_node_group_name" {}
+variable "observability_instance_type" {}
+variable "observability_desired_size" {}
+variable "observability_min_size" {}
+variable "observability_max_size" {}
