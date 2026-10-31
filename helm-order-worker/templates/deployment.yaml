@@ -37,6 +37,8 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "orderly-otel-collector.monitoring.svc.cluster.local:4317"
             - name: KAFKA_BROKERS
               value: {{ .Values.env.KAFKA_BROKERS | quote }}
             - name: POSTGRES_HOST
