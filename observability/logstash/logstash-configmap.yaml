@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: orderly-logstash-pipeline
+  namespace: monitoring
+data:
+  logstash.conf: |
+    input {
+      forward {
+        port => 5044
+      }
+    }
+
+    filter {
+      if [kubernetes][namespace_name] == "orderly" {
+        mutate {
+          add_field => {
+            "environment" => "orderly"
+          }
+        }
+      }
+    }
+
+    output {
+      elasticsearch {
+        hosts => ["https://orderly-elasticsearch-es-http.monitoring.svc:9200"]
+        user => "elastic"
+        password => "${ES_PASSWORD}"
+        ssl_enabled => true
+        ssl_certificate_authorities => ["/usr/share/logstash/config/certs/ca.crt"]
+        index => "orderly-logs-%{+YYYY.MM.dd}"
+      }
+    }

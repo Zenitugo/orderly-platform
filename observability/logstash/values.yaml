@@ -1,0 +1,56 @@
+replicas: 1
+
+logstashConfig:
+  logstash.yml: |
+    http.host: 0.0.0.0
+    xpack.monitoring.enabled: false
+
+nodeSelector:
+  workload: observability
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: 500m
+    memory: 1Gi
+
+logstashJavaOpts: "-Xms256m -Xmx256m"
+
+extraEnvs:
+  - name: ES_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: orderly-elasticsearch-es-elastic-user
+        key: elastic
+
+extraVolumes:
+  - name: logstash-pipeline
+    configMap:
+      name: orderly-logstash-pipeline
+  - name: elasticsearch-ca
+    secret:
+      secretName: orderly-elasticsearch-es-http-certs-public
+
+extraVolumeMounts:
+  - name: logstash-pipeline
+    mountPath: /usr/share/logstash/pipeline/logstash.conf
+    subPath: logstash.conf
+    readOnly: true
+  - name: elasticsearch-ca
+    mountPath: /usr/share/logstash/config/certs
+    readOnly: true
+
+extraPorts:
+  - name: beats
+    containerPort: 5044
+    protocol: TCP
+
+service:
+  type: ClusterIP
+  ports:
+    - name: beats
+      port: 5044
+      protocol: TCP
+      targetPort: 5044

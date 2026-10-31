@@ -46,18 +46,11 @@ config:
 
   outputs: |
     [OUTPUT]
-        Name es
-        Match kube.*
-        Host orderly-elasticsearch-es-http.monitoring.svc
-        Port 9200
-        HTTP_User elastic
-        HTTP_Passwd ${ES_PASSWORD}
-        tls On
-        tls.verify On
-        tls.ca_file /fluent-bit/tls/ca.crt
-        Logstash_Format On
-        Logstash_Prefix orderly
-        Retry_Limit False
+      Name forward
+      Match kube.*
+      Host orderly-logstash-logstash.monitoring.svc
+      Port 5044
+      Retry_Limit False
 
 env:
   - name: ES_PASSWORD
