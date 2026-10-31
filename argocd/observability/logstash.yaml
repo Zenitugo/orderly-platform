@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: orderly-logstash
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    - repoURL: https://helm.elastic.co
+      chart: logstash
+      targetRevision: "9.2.0"
+      helm:
+        releaseName: orderly-logstash
+        valueFiles:
+          - $values/observability/logstash/values.yaml
+
+    - repoURL: https://github.com/Zenitugo/orderly-platform.git
+      targetRevision: master
+      ref: values
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

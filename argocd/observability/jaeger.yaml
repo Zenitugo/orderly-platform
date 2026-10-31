@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: orderly-jaeger
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    - repoURL: https://jaegertracing.github.io/helm-charts
+      chart: jaeger
+      targetRevision: "4.16.1"
+      helm:
+        releaseName: orderly-jaeger
+        valueFiles:
+          - $values/observability/jaeger/values.yaml
+
+    - repoURL: https://github.com/Zenitugo/orderly-platform.git
+      targetRevision: master
+      ref: values
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
