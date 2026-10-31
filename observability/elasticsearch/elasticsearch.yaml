@@ -1,0 +1,35 @@
+apiVersion: elasticsearch.k8s.elastic.co/v1
+kind: Elasticsearch
+metadata:
+  name: orderly-elasticsearch
+  namespace: monitoring
+spec:
+  version: 9.2.0
+  nodeSets:
+    - name: default
+      count: 1
+      config:
+        node.roles: ["master", "data", "ingest"]
+        node.store.allow_mmap: false
+      podTemplate:
+        spec:
+          nodeSelector:
+            workload: observability
+          containers:
+            - name: elasticsearch
+              resources:
+                requests:
+                  memory: 2Gi
+                  cpu: 500m
+                limits:
+                  memory: 3Gi
+      volumeClaimTemplates:
+        - metadata:
+            name: elasticsearch-data
+          spec:
+            accessModes:
+              - ReadWriteOnce
+            storageClassName: gp3-csi
+            resources:
+              requests:
+                storage: 10Gi
