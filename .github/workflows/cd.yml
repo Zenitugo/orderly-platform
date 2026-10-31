@@ -128,6 +128,122 @@ jobs:
             --timeout 600
 
 
+      - name: Register ECK Operator for ELK
+        run: |
+          set -euo pipefail
+
+          kubectl apply -f argocd/observability/eck-operator.yaml
+
+          argocd app sync eck-operator
+
+          argocd app wait eck-operator \
+            --sync \
+            --health \
+            --timeout 600
+
+      
+
+      - name: Register Elastic Search
+        run: |
+          set -euo pipefail
+
+          kubectl apply -f argocd/observability/elasticsearch.yaml
+
+          argocd app sync orderly-elasticsearch
+
+          argocd app wait orderly-elasticsearch \
+            --sync \
+            --health \
+            --timeout 600
+
+
+
+      - name: Register Kibana
+        run: |
+          set -euo pipefail
+
+          kubectl apply -f argocd/observability/kibana.yaml
+
+          argocd app sync orderly-kibana
+
+          argocd app wait orderly-kibana \
+            --sync \
+            --health \
+            --timeout 600
+
+
+      - name: Register Fluentbit
+        run: |
+          set -euo pipefail
+
+          kubectl apply -f argocd/observability/fluentbit.yaml
+
+          argocd app sync fluent-bit
+
+          argocd app wait fluent-bit \
+            --sync \
+            --health \
+            --timeout 600
+
+
+      - name: Register Logstash
+        run: |
+          set -euo pipefail
+
+          kubectl apply -f argocd/observability/logstatsh.yaml
+
+          argocd app sync orderly-logstash
+
+          argocd app wait orderly-logstash \
+            --sync \
+            --health \
+            --timeout 600
+
+
+
+      - name: Register Logstash Configmap
+        run: |
+          set -euo pipefail
+
+          kubectl apply -f argocd/observability/logstash-config.yaml
+
+          argocd app sync orderly-logstash-config
+
+          argocd app wait orderly-logstash-config \
+            --sync \
+            --health \
+            --timeout 600
+
+
+      - name: Register Opentelemetry Collector
+        run: |
+          set -euo pipefail
+
+          kubectl apply -f argocd/observability/opentelemetry-collector.yaml
+
+          argocd app sync orderly-otel-collector
+
+          argocd app wait orderly-otel-collector \
+            --sync \
+            --health \
+            --timeout 600
+
+
+
+      - name: Register Jaeger
+        run: |
+          set -euo pipefail
+
+          kubectl apply -f argocd/observability/jaeger.yaml
+
+          argocd app sync orderly-jaeger
+
+          argocd app wait orderly-jaeger \
+            --sync \
+            --health \
+            --timeout 600
+
+
       - name: Diagnose Argo CD permissions
         run: |
           set -euo pipefail
