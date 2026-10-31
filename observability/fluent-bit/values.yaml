@@ -46,11 +46,11 @@ config:
 
   outputs: |
     [OUTPUT]
-      Name forward
-      Match kube.*
-      Host orderly-logstash-logstash.monitoring.svc
-      Port 5044
-      Retry_Limit False
+        Name forward
+        Match kube.*
+        Host orderly-logstash-logstash.monitoring.svc
+        Port 5044
+        Retry_Limit False
 
 env:
   - name: ES_PASSWORD
