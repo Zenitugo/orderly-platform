@@ -36,6 +36,8 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           env:
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "orderly-otel-collector.monitoring.svc.cluster.local:4317"
             {{- range $key, $value := .Values.env }}
             - name: {{ $key }}
               value: {{ $value | quote }}
