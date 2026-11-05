@@ -76,6 +76,7 @@ jobs:
           set -euo pipefail
           
           kubectl port-forward \
+            --address 127.0.0.1 \
             svc/argocd-server \
             8081:443 \
             -n argocd \
@@ -84,7 +85,7 @@ jobs:
           echo $! > /tmp/argocd-port-forward.pid
 
           for i in {1..30}; do
-            if curl -ks https://localhost:8081/healthz >/dev/null; then
+            if curl -ks https://127.0.0.1:8081/healthz >/dev/null; then
               echo "ArgoCD is reachable"
               break
             fi
@@ -126,6 +127,8 @@ jobs:
             --sync \
             --health \
             --timeout 1200
+
+          argocd app get kube-prometheus-stack
 
 
       - name: Register ECK Operator for ELK
