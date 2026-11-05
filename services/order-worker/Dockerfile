@@ -1,7 +1,9 @@
 FROM python:3.12-slim AS builder
 
 # confluent-kafka needs librdkafka's headers to build its C extension
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update \
+    && apt-get install -y --only-upgrade apt libapt-pkg7.0 \
+    && apt-get install -y --no-install-recommends \
     gcc \
     librdkafka-dev \
     && rm -rf /var/lib/apt/lists/*
@@ -14,7 +16,9 @@ RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
 FROM python:3.12-slim
 
 # librdkafka's runtime .so is still needed even though the C headers aren't
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update \
+    && apt-get install -y --only-upgrade apt libapt-pkg7.0 \
+    && apt-get install -y --no-install-recommends \
     librdkafka1 \
     && rm -rf /var/lib/apt/lists/* \
     && useradd --create-home --uid 1000 appuser
