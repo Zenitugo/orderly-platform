@@ -8,7 +8,7 @@ spec:
   sources:
     - repoURL: https://helm.elastic.co
       chart: logstash
-      targetRevision: "9.2.0"
+      targetRevision: "8.5.1"
       helm:
         releaseName: orderly-logstash
         valueFiles:
