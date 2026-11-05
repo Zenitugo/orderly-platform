@@ -125,7 +125,7 @@ jobs:
           argocd app wait kube-prometheus-stack \
             --sync \
             --health \
-            --timeout 600
+            --timeout 900
 
 
       - name: Register ECK Operator for ELK
@@ -154,7 +154,7 @@ jobs:
           argocd app wait orderly-elasticsearch \
             --sync \
             --health \
-            --timeout 600
+            --timeout 900
 
 
 
@@ -183,14 +183,14 @@ jobs:
           argocd app wait fluent-bit \
             --sync \
             --health \
-            --timeout 600
+            --timeout 900
 
 
       - name: Register Logstash
         run: |
           set -euo pipefail
 
-          kubectl apply -f argocd/observability/logstatsh.yaml
+          kubectl apply -f argocd/observability/logstash.yaml
 
           argocd app sync orderly-logstash
 
@@ -226,7 +226,7 @@ jobs:
           argocd app wait orderly-otel-collector \
             --sync \
             --health \
-            --timeout 600
+            --timeout 900
 
 
 
@@ -241,7 +241,7 @@ jobs:
           argocd app wait orderly-jaeger \
             --sync \
             --health \
-            --timeout 600
+            --timeout 900
 
 
       - name: Diagnose Argo CD permissions
