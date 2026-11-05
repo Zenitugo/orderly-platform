@@ -186,7 +186,7 @@ jobs:
           argocd app wait fluent-bit \
             --sync \
             --health \
-            --timeout 900
+            --timeout 1200
 
 
       - name: Register Logstash
