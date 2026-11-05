@@ -9,6 +9,17 @@ RUN npm install --omit=dev
 FROM node:22-slim
 
 
+WORKDIR /app
+
+# Fix Debian APT security vulnerabilities
+RUN apt-get -o Acquire::Retries=0 update \
+    && apt-get -o Acquire::Retries=0 install -y --only-upgrade \
+        apt \
+        libapt-pkg6.0 \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+
 # # Remove npm's own bundled tooling — it's not needed at runtime, and it
 # # ships its own dependency tree (pacote, sigstore, etc.) that otherwise
 # # gets flagged by container scanners despite being unrelated to this app.
@@ -20,7 +31,7 @@ RUN apt-get update \
            /usr/local/bin/corepack 
     
 
-WORKDIR /app
+# WORKDIR /app
 COPY --from=builder /build/node_modules ./node_modules
 COPY package.json .
 COPY src/ ./src/
