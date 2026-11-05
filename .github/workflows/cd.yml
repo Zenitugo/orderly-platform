@@ -125,7 +125,7 @@ jobs:
           argocd app wait kube-prometheus-stack \
             --sync \
             --health \
-            --timeout 900
+            --timeout 1200
 
 
       - name: Register ECK Operator for ELK
