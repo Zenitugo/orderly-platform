@@ -12,9 +12,6 @@ data:
       }
      }
 
-    # filter {
-  
-
     
     filter {
       ruby {
