@@ -10,13 +10,21 @@ nodeSelector:
 
 resources:
   requests:
-    cpu: 250m
-    memory: 512Mi
-  limits:
     cpu: 500m
-    memory: 1Gi
+    memory: 1536Mi
+  limits:
+    cpu: "1"
+    memory: 2Gi
 
-logstashJavaOpts: "-Xms256m -Xmx256m"
+logstashJavaOpts: "-Xms768m -Xmx768m"
+
+readinessProbe:
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 120
+  timeoutSeconds: 10
+  failureThreshold: 6 
 
 extraEnvs:
   - name: ES_PASSWORD
