@@ -52,6 +52,6 @@ data:
         ssl => true
         cacert => "/usr/share/logstash/config/certs/ca.crt"
 
-        index => "orderly-logs-%{+YYYY.MM.dd}"
+        index => "orderly-logs-v2-%{+YYYY.MM.dd}"
       }
     }
