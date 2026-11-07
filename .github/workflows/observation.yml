@@ -1,0 +1,101 @@
+#################  Github Actions Script for the Deployment of Observability Tools #############################
+# Runs once per environment (after platform setup, or by hand), not on every code push.
+# It registers ONE root Application. Argo CD then installs and syncs every tool from Git.
+# Nothing here uses the argocd CLI or a port-forward, so there is no tunnel to drop.
+
+name: Observability
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Platform"]        
+    types: [completed]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: observability
+  cancel-in-progress: false
+
+env:
+  AWS_REGION: eu-central-1
+  CLUSTER_NAME: Orderly_Cluster
+
+jobs:
+  observability:
+    name: Register and verify the observability stack
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+
+
+      - name: Connect to the cluster
+        run: aws eks update-kubeconfig --name "$CLUSTER_NAME" --region "$AWS_REGION"
+
+      - name: Check Argo CD is ready
+        run: |
+          set -euo pipefail
+          kubectl wait --for=condition=Available deployment/argocd-server -n argocd --timeout=300s
+          kubectl wait --for=condition=Available deployment/argocd-repo-server -n argocd --timeout=300s
+
+      - name: Show node capacity before install
+        run: kubectl describe nodes | grep -A8 "Allocated resources" || true
+
+      - name: Register the observability root application
+        run: kubectl apply -f argocd/observability/
+
+      - name: Wait for each tool to become healthy
+        run: |
+          set -euo pipefail
+
+          # The child Applications are created by the root app, so wait for each to exist first.
+          wait_for_app() {
+            local app="$1" secs="$2" end=$((SECONDS + $2))
+            until kubectl get application "$app" -n argocd >/dev/null 2>&1; do
+              if [ "$SECONDS" -ge "$end" ]; then echo "$app never appeared"; return 1; fi
+              sleep 5
+            done
+            kubectl wait --for=jsonpath='{.status.sync.status}'=Synced "application/$app" -n argocd --timeout="${secs}s"
+            kubectl wait --for=jsonpath='{.status.health.status}'=Healthy "application/$app" -n argocd --timeout="${secs}s"
+            echo "$app is healthy"
+          }
+
+          # name and timeout in seconds, in install order
+          apps=(
+            "kube-prometheus-stack 1200"
+            "eck-operator 600"
+            "orderly-elasticsearch 1200"
+            "orderly-kibana 600"
+            "fluent-bit 900"
+            "orderly-logstash 600"
+            "orderly-logstash-config 600"
+            "orderly-otel-collector 900"
+            "orderly-jaeger 900"
+          )
+          for entry in "${apps[@]}"; do
+            read -r app secs <<<"$entry"
+            wait_for_app "$app" "$secs"
+          done
+
+      - name: Show what is not healthy
+        if: failure()
+        run: |
+          kubectl get applications -n argocd || true
+          kubectl get pods -A | grep -v -E "Running|Completed" || true
+          kubectl get events -A --sort-by=.lastTimestamp | tail -30 || true
+          kubectl describe nodes | grep -A8 "Allocated resources" || true
