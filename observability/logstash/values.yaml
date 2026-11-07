@@ -10,13 +10,13 @@ nodeSelector:
 
 resources:
   requests:
-    cpu: 500m
-    memory: 1536Mi
+    cpu: 250m
+    memory: 512Mi
   limits:
-    cpu: "1"
-    memory: 2Gi
+    cpu: "500m"
+    memory: 1Gi
 
-logstashJavaOpts: "-Xms768m -Xmx768m"
+logstashJavaOpts: "-Xms256m -Xmx256m"
 
 readinessProbe:
   httpGet:
