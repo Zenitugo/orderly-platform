@@ -6,8 +6,9 @@ metadata:
 data:
   logstash.conf: |
     input {
-      forward {
+      tcp {
         port => 5044
+        codec => json_lines
       }
     }
 

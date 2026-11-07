@@ -46,10 +46,11 @@ config:
 
   outputs: |
     [OUTPUT]
-        Name forward
+        Name tcp
         Match kube.*
         Host orderly-logstash-logstash.monitoring.svc
         Port 5044
+        Format json_lines
         Retry_Limit False
 
 env:
