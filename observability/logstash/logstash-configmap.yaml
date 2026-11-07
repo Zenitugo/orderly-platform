@@ -10,9 +10,30 @@ data:
         port => 5044
         codec => json_lines
       }
-    }
+     }
 
+    # filter {
+  
+
+    
     filter {
+      ruby {
+        code => '
+          labels = event.get("[kubernetes][labels]")
+
+          if labels.is_a?(Hash)
+            normalized_labels = {}
+
+            labels.each do |key, value|
+              safe_key = key.to_s.gsub(/[.\/]/, "_")
+              normalized_labels[safe_key] = value
+            end
+
+            event.set("[kubernetes][labels]", normalized_labels)
+          end
+        '
+      }
+
       if [kubernetes][namespace_name] == "orderly" {
         mutate {
           add_field => {
@@ -30,7 +51,7 @@ data:
 
         ssl => true
         cacert => "/usr/share/logstash/config/certs/ca.crt"
-        
+
         index => "orderly-logs-%{+YYYY.MM.dd}"
       }
     }
