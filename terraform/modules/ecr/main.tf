@@ -7,6 +7,10 @@ resource "aws_ecr_repository" "api_gateway" {
   image_scanning_configuration {
     scan_on_push = true
   }
+
+  tags = {
+    OwnerTeam = "Backend-Team"
+  }
 }
 
 
@@ -19,6 +23,11 @@ resource "aws_ecr_repository" "order_worker" {
   image_scanning_configuration {
         scan_on_push = true
     }
+
+
+  tags = {
+    OwnerTeam = "Backend-Team"
+  }
 }
 
 
@@ -32,6 +41,10 @@ resource "aws_ecr_repository" "notifier" {
   image_scanning_configuration {
         scan_on_push = true
     }
+
+  tags = {
+    OwnerTeam = "Backend-Team"
+  }
 }
 
 
@@ -43,5 +56,10 @@ resource "aws_ecr_repository" "frontend" {
 
   image_scanning_configuration {
     scan_on_push = true
+  }
+
+
+  tags = {
+    OwnerTeam = "Frontend-Team"
   }
 }
