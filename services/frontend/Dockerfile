@@ -7,7 +7,7 @@ COPY . .
 RUN npm run build
 
 # --- runtime stage: static files only, non-root ---
-FROM nginxinc/nginx-unprivileged:1.27-alpine
+FROM nginxinc/nginx-unprivileged:1.31.7-alpine3.24
 USER root
 RUN apk upgrade --no-cache
 USER 101
